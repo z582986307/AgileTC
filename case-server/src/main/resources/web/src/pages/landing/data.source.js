@@ -14,7 +14,7 @@ export const Banner30DataSource = {
           <div>
             <img src={logoImg} className="banner3-logo" />
             <br />
-            <span>AgileTC</span>
+            <span>TestCaseManage</span>
           </div>
         ),
       },
@@ -59,7 +59,7 @@ export const Footer00DataSource = {
     children: (
       <span>
         <p>
-          <span>©2020 AgileTC</span>
+          <span>©2020 TestCaseManage</span>
         </p>
       </span>
     ),
