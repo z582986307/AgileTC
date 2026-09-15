@@ -31,7 +31,6 @@ class DoGroup extends Component {
     const { minder } = this.props;
     let { undoDiffs, lastSnap } = this.state;
     const headSnap = minder.exportJson();
-    console.log('----headsnap---', headSnap);
     const diff = jsonDiff.compare(headSnap, lastSnap);
 
     const doDiff = jsonDiff.compare(lastSnap, headSnap);
@@ -50,8 +49,9 @@ class DoGroup extends Component {
       }
       lastSnap = headSnap;
       this.setState({ undoDiffs, lastSnap });
-      return true;
+      return { changed: true, snapshot: headSnap };
     }
+    return { changed: false, snapshot: headSnap };
   };
   makeRedoDiff = () => {
     const { minder } = this.props;
@@ -117,10 +117,16 @@ class DoGroup extends Component {
     const { patchLock } = this.state;
     if (window.minderData) {
       if (patchLock) return;
-      if (this.makeUndoDiff()) {
+      const change = this.makeUndoDiff();
+      if (change.changed) {
         this.setState({ redoDiffs: [] });
       }
+      return {
+        snapshot: change.snapshot,
+        patch: this.getAndResetPatch(),
+      };
     }
+    return null;
   };
   hasUndo = () => {
     const { undoDiffs } = this.state;

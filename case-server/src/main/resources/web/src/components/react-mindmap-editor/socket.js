@@ -18,12 +18,10 @@ class Socket extends React.Component {
         var websocket = this.state.ws;
 
         websocket.on ('connect', () => {
-            console.log(this.props);
             if (typeof this.props.onOpen === 'function') this.props.onOpen();
         });
 
         websocket.on ('reconnect', () => {
-            console.log(this.props);
             websocket.disconnect();
             notification.error({ message: 'Version of client is not equal to server, please refresh.'});
         });
@@ -58,14 +56,9 @@ class Socket extends React.Component {
                 this.props.wsMinder.importJson(cacheContent);
                 window.minderData = cacheContent;
                 this.expectedBase = this.props.wsMinder.getBase();
-                console.log('import case from cache. cache base: ', cacheContent.base);
                 // todo 测试版本，暂不清除
                 localStorage.removeItem(JSON.stringify(this.props.wsParam));
             } catch (e) {
-                console.error(e);
-                
-                console.log('接收消息，data: ', evt.message);
-                console.log('接收消息，当前内容: ', JSON.stringify(this.props.wsMinder.exportJson()));
                 if (evt.message === JSON.stringify(this.props.wsMinder.exportJson())) {
                   return;
                 } 
@@ -73,21 +66,17 @@ class Socket extends React.Component {
                 window.minderData = undefined;
                 this.props.wsMinder.importJson(dataJson);
                 window.minderData = dataJson;
-        
-                // 第一次打开用例，预期base与用例的base保持一直
                 this.expectedBase = this.props.wsMinder.getBase();
-                console.log('----- 接收消息，expected base: ', this.expectedBase);
+
                 // this.props.onMessage(evt.data);
             }
         });
 
         websocket.on('edit_ack_event', evt => {
-            console.log('edit_ack_event', evt.message);
             const recv = JSON.parse(evt.message || '{}');
             // 如果json解析没有root节点
             this.props.wsMinder.setStatus('readonly');
             const recvPatches = this.travere(recv);
-            console.log('====recv=====', evt.message, recv, recvPatches);
             // const recvBase = recvPatches.filter((item) => item.path === '/base')[0]?.value;
             // const recvFromBase = recvPatches.filter((item) => item.path === '/base')[0]?.fromValue;
             try {
@@ -99,7 +88,6 @@ class Socket extends React.Component {
         });
 
         websocket.on('edit_notify_event', evt => {
-            console.log('edit_notify_event', evt.message);
             const recv = JSON.parse(evt.message || '{}');
             // 如果json解析没有root节点
             try {

@@ -473,12 +473,14 @@ class KityminderEditor extends Component {
   };
   sendPatch = e => {
     if (this.groupNode && window.minderData) {
-      this.groupNode.changed();
-      const caseObj = e.minder.exportJson();
-      caseObj.right = window.minderData.right || 1;
+      const change = this.groupNode.changed();
+      if (!change) return;
+      const caseObj = {
+        ...change.snapshot,
+        right: window.minderData.right || 1,
+      };
 
-      const patch = this.groupNode.getAndResetPatch();
-      console.log('send patch', patch)
+      const patch = change.patch;
       if (patch.length === 1 && patch[0].path === '/base') {
           e.minder._status = 'normal';
           return;
