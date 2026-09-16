@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import io from './assets/socketio/socket.io.js';
 import { notification } from 'antd';
+import { prepareLargeMindMap } from './largeMindMap';
 // import { AsyncStorage } from 'react-native-community/async-storage';
 
 class Socket extends React.Component {
@@ -39,10 +40,12 @@ class Socket extends React.Component {
 
         websocket.on('open_event', evt => {
             const recv = JSON.parse(evt.message || '{}');
-            const dataJson = { ...recv };
+            const dataJson = prepareLargeMindMap(recv).data;
             
             try {
-                const cacheContent = JSON.parse(localStorage.getItem(JSON.stringify(this.props.wsParam)));
+                const cacheContent = prepareLargeMindMap(
+                    JSON.parse(localStorage.getItem(JSON.stringify(this.props.wsParam)))
+                ).data;
                 if (cacheContent == undefined) {
                     throw 'cache is empty'; 
                 }

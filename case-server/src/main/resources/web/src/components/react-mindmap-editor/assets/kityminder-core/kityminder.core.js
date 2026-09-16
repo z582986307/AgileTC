@@ -1906,7 +1906,7 @@
           function layoutNode(node, round) {
             // layout all children first
             // 剪枝：收起的节点无需计算
-            if (node.isExpanded() || true) {
+            if (node.isExpanded()) {
               node.children.forEach(function (child) {
                 layoutNode(child, round);
               });
