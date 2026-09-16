@@ -4,6 +4,7 @@ import {
   EXECUTION_MARK_OPTIONS,
   canMarkExecutionResult,
   collectExecutionNodes,
+  getExecutionProgress,
   countExecutionResults,
   getNodeNote,
   isExecutableNode,
@@ -28,6 +29,16 @@ test('执行结果沿用原逻辑：选中任意数量节点即可标记', () =>
   expect(canMarkExecutionResult(1, false)).toBe(true)
   expect(canMarkExecutionResult(2, false)).toBe(true)
   expect(canMarkExecutionResult(1, true)).toBe(false)
+})
+test('执行进度显示已执行用例数与总用例数', () => {
+  expect(
+    getExecutionProgress({ passed: 2, failed: 1, blocked: 1, skipped: 0, pending: 2, total: 6 }),
+  ).toEqual({ completed: 4, total: 6, percent: 67 })
+  expect(getExecutionProgress({ passed: 0, failed: 0, blocked: 0, skipped: 0, total: 0 })).toEqual({
+    completed: 0,
+    total: 0,
+    percent: 0,
+  })
 })
 test('只允许末级用例执行并统计结果', () => {
   const passed = node({ progress: 9, note: '已核对' })

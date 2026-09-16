@@ -16,6 +16,11 @@ export const EXECUTION_MARK_OPTIONS = [
   },
 ]
 export const canMarkExecutionResult = (selectedCount, isLock) => !isLock && selectedCount > 0
+export const getExecutionProgress = counts => {
+  const completed = counts.passed + counts.failed + counts.blocked + counts.skipped
+  const total = counts.total
+  return { completed, total, percent: total ? Math.round((completed / total) * 100) : 0 }
+}
 const childrenOf = node => (node && node.getChildren ? node.getChildren() : [])
 export const isExecutableNode = node =>
   Boolean(node && !(node.isRoot && node.isRoot()) && childrenOf(node).length === 0)
