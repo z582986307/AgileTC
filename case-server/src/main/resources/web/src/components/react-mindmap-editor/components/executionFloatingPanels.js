@@ -3,11 +3,12 @@ import PropTypes from 'prop-types'
 import { Button, Icon, Input, message, Tooltip } from 'antd'
 import { CustomIcon } from './index'
 import {
+  EXECUTION_MARK_OPTIONS,
   RESULT_OPTIONS,
+  canMarkExecutionResult,
   collectExecutionNodes,
   countExecutionResults,
   getNodeNote,
-  isExecutableNode,
 } from '../executionPanelUtils'
 
 class ExecutionFloatingPanels extends Component {
@@ -98,9 +99,13 @@ class ExecutionFloatingPanels extends Component {
   }
   render() {
     const { selectedNode, isLock } = this.props
-    const disabled =
-      isLock || this.props.minder.getSelectedNodes().length !== 1 || !isExecutableNode(selectedNode)
+    const selectedCount = this.props.minder.getSelectedNodes().length
+    const markDisabled = !canMarkExecutionResult(selectedCount, isLock)
+    const noteDisabled = isLock || selectedCount !== 1 || !selectedNode
     const selectedProgress = selectedNode && selectedNode.getData('progress')
+    let selectionLabel = '选择用例后可标记'
+    if (!markDisabled)
+      selectionLabel = selectedNode ? selectedNode.getText() : `已选择 ${selectedCount} 个用例`
     return (
       <React.Fragment>
         {this.renderFilter()}
@@ -112,38 +117,37 @@ class ExecutionFloatingPanels extends Component {
               </span>
               <span>
                 <strong>执行结果</strong>
-                <small title={disabled ? undefined : selectedNode.getText()}>
-                  {disabled ? '选择末级用例后可标记' : selectedNode.getText()}
+                <small title={selectedNode ? selectedNode.getText() : undefined}>
+                  {selectionLabel}
                 </small>
               </span>
             </span>
           </header>
           <div className="execution-section-label">标记状态</div>
           <div className="execution-result-actions">
-            {RESULT_OPTIONS.map(item => (
-              <Tooltip title={item.label} key={item.key}>
-                <Button
-                  className={`execution-result-button ${item.tone}${
-                    selectedProgress === item.value ? ' active' : ''
-                  }`}
-                  disabled={disabled}
-                  onClick={() => this.mark(item.value)}
-                >
-                  <CustomIcon type={item.icon} disabled={disabled} />
-                  <span>{item.label}</span>
-                </Button>
-              </Tooltip>
-            ))}
+            {EXECUTION_MARK_OPTIONS.map(item => {
+              const active =
+                item.value === undefined
+                  ? selectedProgress === undefined || selectedProgress === null
+                  : selectedProgress === item.value
+              return (
+                <Tooltip title={item.label} key={item.key}>
+                  <Button
+                    className={`execution-result-button ${item.tone}${active ? ' active' : ''}`}
+                    disabled={markDisabled}
+                    onClick={() => this.mark(item.value)}
+                  >
+                    {item.antIcon ? (
+                      <Icon type={item.icon} />
+                    ) : (
+                      <CustomIcon type={item.icon} disabled={markDisabled} />
+                    )}
+                    <span>{item.label}</span>
+                  </Button>
+                </Tooltip>
+              )
+            })}
           </div>
-          <button
-            type="button"
-            className="execution-clear-button"
-            disabled={disabled}
-            onClick={() => this.mark(undefined)}
-          >
-            <Icon type="minus-circle" />
-            清除结果
-          </button>
           <div className="execution-note-header">
             <span>执行备注</span>
             <em>{this.state.note.length}/500</em>
@@ -151,13 +155,13 @@ class ExecutionFloatingPanels extends Component {
           <Input.TextArea
             rows={3}
             maxLength={500}
-            disabled={disabled}
+            disabled={noteDisabled}
             placeholder="填写本次执行备注"
             value={this.state.note}
             onChange={event => this.setState({ note: event.target.value })}
           />
           <div className="execution-panel-footer">
-            <Button type="primary" disabled={disabled} onClick={this.saveNote}>
+            <Button type="primary" disabled={noteDisabled} onClick={this.saveNote}>
               保存备注
             </Button>
           </div>

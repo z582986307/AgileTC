@@ -401,31 +401,16 @@
       background: #f1f5f9;
       border-color: #94a3b8;
     }
-  }
-}
 
-.execution-clear-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 28px;
-  margin-top: 8px;
-  padding: 0;
-  color: #64748b;
-  font-size: 12px;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
+    &.untested {
+      grid-column: 1 / -1;
+    }
 
-  &:hover,
-  &:focus {
-    color: #3370ff;
-    outline: none;
-  }
-
-  &:disabled {
-    color: #cbd5e1;
-    cursor: not-allowed;
+    &.untested.active {
+      color: #475569;
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
   }
 }
 

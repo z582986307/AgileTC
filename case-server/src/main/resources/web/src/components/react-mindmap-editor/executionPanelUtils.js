@@ -4,6 +4,18 @@ export const RESULT_OPTIONS = [
   { key: 'blocked', label: '阻塞', value: 5, icon: 'block', tone: 'warning' },
   { key: 'skipped', label: '跳过', value: 4, icon: 'skip', tone: 'neutral' },
 ]
+export const EXECUTION_MARK_OPTIONS = [
+  ...RESULT_OPTIONS,
+  {
+    key: 'untested',
+    label: '未测试',
+    value: undefined,
+    icon: 'minus-circle',
+    tone: 'untested',
+    antIcon: true,
+  },
+]
+export const canMarkExecutionResult = (selectedCount, isLock) => !isLock && selectedCount > 0
 const childrenOf = node => (node && node.getChildren ? node.getChildren() : [])
 export const isExecutableNode = node =>
   Boolean(node && !(node.isRoot && node.isRoot()) && childrenOf(node).length === 0)
