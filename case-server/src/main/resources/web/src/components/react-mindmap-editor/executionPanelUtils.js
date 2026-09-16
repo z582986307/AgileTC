@@ -1,8 +1,8 @@
 export const RESULT_OPTIONS = [
-  { key: 'passed', label: '通过', value: 9, icon: 'checked' },
-  { key: 'failed', label: '失败', value: 1, icon: 'fail' },
-  { key: 'blocked', label: '阻塞', value: 5, icon: 'block' },
-  { key: 'skipped', label: '跳过', value: 4, icon: 'skip' },
+  { key: 'passed', label: '通过', value: 9, icon: 'checked', tone: 'success' },
+  { key: 'failed', label: '失败', value: 1, icon: 'fail', tone: 'danger' },
+  { key: 'blocked', label: '阻塞', value: 5, icon: 'block', tone: 'warning' },
+  { key: 'skipped', label: '跳过', value: 4, icon: 'skip', tone: 'neutral' },
 ]
 const childrenOf = node => (node && node.getChildren ? node.getChildren() : [])
 export const isExecutableNode = node =>

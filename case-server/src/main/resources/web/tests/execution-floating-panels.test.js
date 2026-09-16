@@ -1,5 +1,6 @@
 /* eslint-env jest */
 import {
+  RESULT_OPTIONS,
   collectExecutionNodes,
   countExecutionResults,
   getNodeNote,
@@ -7,6 +8,9 @@ import {
 } from '../src/components/react-mindmap-editor/executionPanelUtils'
 import { getSocketUrl } from '../src/components/react-mindmap-editor/util/socketUrl'
 const node = (data, children = []) => ({ getChildren: () => children, getData: key => data[key] })
+test('执行结果提供稳定的语义样式标识', () => {
+  expect(RESULT_OPTIONS.map(item => item.tone)).toEqual(['success', 'danger', 'warning', 'neutral'])
+})
 test('只允许末级用例执行并统计结果', () => {
   const passed = node({ progress: 9, note: '已核对' })
   const failed = node({ progress: 1 })
