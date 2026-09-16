@@ -1915,7 +1915,7 @@
             // var childrenInFlow = node.getChildren().filter(function(child) {
             //     return !child.hasLayoutOffset();
             // });
-            layout.doLayout(node, node.getChildren(), round);
+            layout.doLayout(node, node.isExpanded() ? node.getChildren() : [], round);
           }
           // 第一轮布局
           layoutNode(this.getRoot(), 1);
@@ -1942,7 +1942,13 @@
         applyLayoutResult: function (root, duration, callback) {
           root = root || this.getRoot();
           var me = this;
-          var complex = root.getComplex();
+          var complex = 0;
+          (function countVisible(node) {
+            complex++;
+            if (node.isExpanded()) {
+              node.children.forEach(countVisible);
+            }
+          })(root);
           function consume() {
             if (!--complex) {
               if (callback) {
@@ -1994,8 +2000,10 @@
               });
               consume();
             }
-            for (var i = 0; i < node.children.length; i++) {
-              apply(node.children[i], matrix);
+            if (node.isExpanded()) {
+              for (var i = 0; i < node.children.length; i++) {
+                apply(node.children[i], matrix);
+              }
             }
           }
           apply(root, root.parent ? root.parent.getGlobalLayoutTransform() : new kity.Matrix());
@@ -2480,7 +2488,9 @@
         },
         appendNode: function (node, parent, index) {
           if (parent) parent.insertChild(node, index);
-          this.attachNode(node);
+          if (!parent || parent.isExpanded()) {
+            this.attachNode(node);
+          }
           return this;
         },
         removeNode: function (node) {
@@ -3203,10 +3213,27 @@
         renderTree: function () {
           if (!this.attached) return;
           var list = [];
+          var minder = this.getMinder();
+          var renderContainer = minder.getRenderContainer();
           this.traverse(function (node) {
-            list.push(node);
+            var visible = !node.parent || node.parent.isExpanded();
+            if (visible) {
+              if (!node.attached) {
+                node.attached = true;
+                renderContainer.addShape(node.getRenderContainer());
+                minder.fire('nodeattach', {
+                  node: node,
+                });
+              }
+              list.push(node);
+            } else if (node.attached) {
+              node.getRenderContainer().setVisible(false);
+              if (node.getConnection()) {
+                node.getConnection().setVisible(false);
+              }
+            }
           });
-          this.getMinder().renderNodeBatch(list);
+          minder.renderNodeBatch(list);
           return this;
         },
         getRenderer: function (type) {

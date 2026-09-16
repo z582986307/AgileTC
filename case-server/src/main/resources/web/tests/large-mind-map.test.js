@@ -1,6 +1,9 @@
 /** @jest-environment node */
 
-const { prepareLargeMindMap } = require('../src/components/react-mindmap-editor/largeMindMap');
+const {
+  countVisibleMindMapNodes,
+  prepareLargeMindMap,
+} = require('../src/components/react-mindmap-editor/largeMindMap');
 
 const createTree = depth => {
   const node = { data: { text: `level-${depth}` }, children: [] };
@@ -19,6 +22,7 @@ describe('大型脑图首次加载', () => {
     expect(data.root.children[0].data.expandState).toBe('collapse');
     expect(data.root.children[0].children[0].data.expandState).toBe('collapse');
     expect(data.root.children[0].children[0].children[0].children[0].data.expandState).toBeUndefined();
+    expect(countVisibleMindMapNodes(data)).toBe(2);
     expect(data.base).toBe(7);
   });
 
