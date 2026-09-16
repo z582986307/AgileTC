@@ -195,3 +195,30 @@
     background-color: #ff6a70;
   }
 }
+.editor-save-actions { position: fixed; right: 20px; bottom: 30px; z-index: 40; display: inline-block; &.execution-mode { right: 336px; } }
+.execution-result-panel, .execution-filter-panel { position: absolute; z-index: 30; width: 300px; padding: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 10px 30px rgba(15, 23, 42, .12); }
+.execution-result-panel { right: 16px; bottom: 16px;
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+    span { max-width: 150px; overflow: hidden; color: #8c8c8c; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+  }
+  textarea { margin: 12px 0 8px; resize: none; }
+}
+.execution-result-actions { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+  .ant-btn { height: 52px; padding: 6px 2px;
+    svg { width: 18px; height: 18px; }
+    span:last-child { display: block; margin: 2px 0 0; font-size: 12px; }
+  }
+}
+.execution-filter-panel { top: 136px; right: 16px;
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+}
+.execution-filter-all, .execution-filter-grid button { width: 100%; color: #334155; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 6px; cursor: pointer;
+  &:hover, &:focus { color: #1677ff; border-color: #91caff; outline: none; }
+}
+.execution-filter-all { display: flex; justify-content: space-between; padding: 8px 10px; }
+.execution-filter-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 8px;
+  button { padding: 8px 2px; span, strong { display: block; } strong { margin-top: 4px; color: #0f172a; font-size: 16px; } }
+}
+.execution-pending { margin-top: 8px; color: #64748b; text-align: right; }
+.execution-filter-rail.ant-btn { position: absolute; top: 180px; right: 0; z-index: 30; width: 44px; height: 44px; border-right: 0; border-radius: 8px 0 0 8px; box-shadow: 0 8px 24px rgba(15, 23, 42, .12); }
+@media (max-width: 900px) { .execution-result-panel, .execution-filter-panel { width: 272px; } .editor-save-actions.execution-mode { right: 304px; } }

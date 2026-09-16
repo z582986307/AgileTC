@@ -6,6 +6,7 @@ import './index.scss';
 import request from '@/utils/axios';
 import getQueryString from '@/utils/getCookies';
 import moment from 'moment';
+import { getSocketUrl } from '../../react-mindmap-editor/util/socketUrl';
 import Link from 'umi/link';
 import AgileTCEditor from '../../react-mindmap-editor';
 
@@ -212,115 +213,10 @@ export default class CaseMgt extends React.Component {
                 </Tooltip>
               </Col>
               <Col span={1}></Col>
-
-              <Col span={2} className="font-size-12">
-                通过率: {recordDetail.passRate.toFixed(2) + '%'}
-              </Col>
-              <Col span={2} className="font-size-12">
-                {' '}
-                已测: {recordDetail.passCount + '/' + recordDetail.totalCount}
-              </Col>
-              <Col
-                span={4}
-                style={{ textAlign: 'center' }}
-                className="progress"
-              >
-                <div>
-                  {(
-                    <Tooltip
-                      title={`通过:${recordDetail.successCount} (${(
-                        (recordDetail.successCount / recordDetail.totalCount) *
-                        100
-                      ).toFixed(2)}%)`}
-                      className="font-size-12"
-                    >
-                      <div
-                        className="div-wrap"
-                        style={{
-                          width: `${(recordDetail.successCount /
-                            recordDetail.totalCount) *
-                            100}%`,
-                          backgroundColor: '#61C663',
-                        }}
-                      >
-                        <span></span>
-                      </div>
-                    </Tooltip>
-                  ) || null}
-                  {(recordDetail.blockCount > 0 && (
-                    <Tooltip
-                      title={`阻塞:${recordDetail.blockCount} (${(
-                        (recordDetail.blockCount / recordDetail.totalCount) *
-                        100
-                      ).toFixed(2)}%)`}
-                      className="font-size-12"
-                    >
-                      <div
-                        className="div-wrap"
-                        style={{
-                          width: `${(recordDetail.blockCount /
-                            recordDetail.totalCount) *
-                            100}%`,
-                          backgroundColor: '#85A1D6',
-                        }}
-                      >
-                        <span></span>
-                      </div>
-                    </Tooltip>
-                  )) ||
-                    null}
-                  {(recordDetail.bugNum > 0 && (
-                    <Tooltip
-                      title={`失败:${recordDetail.bugNum} (${(
-                        (recordDetail.bugNum / recordDetail.totalCount) *
-                        100
-                      ).toFixed(2)}%)`}
-                    >
-                      <div
-                        className="div-wrap"
-                        style={{
-                          width: `${(recordDetail.bugNum /
-                            recordDetail.totalCount) *
-                            100}%`,
-                          backgroundColor: '#FF7575',
-                        }}
-                      >
-                        <span></span>
-                      </div>
-                    </Tooltip>
-                  )) ||
-                    null}
-                  {(recordDetail.totalCount - recordDetail.passCount > 0 && (
-                    <Tooltip
-                      title={`未执行:${recordDetail.totalCount -
-                        recordDetail.passCount} (${(
-                        ((recordDetail.totalCount - recordDetail.passCount) /
-                          recordDetail.totalCount) *
-                        100
-                      ).toFixed(2)}%)`}
-                    >
-                      <div
-                        className="div-wrap"
-                        style={{
-                          width: `${((recordDetail.totalCount -
-                            recordDetail.passCount) /
-                            recordDetail.totalCount) *
-                            100}%`,
-                          backgroundColor: '#EDF0FA',
-                        }}
-                      >
-                        <span></span>
-                      </div>
-                    </Tooltip>
-                  )) ||
-                    null}
-                </div>
-              </Col>
-              <Col span={1}></Col>
               <Col span={2} className="font-size-12">
                 计划周期:
               </Col>
-              <Col span={4} className="font-size-12">
+              <Col span={8} className="font-size-12">
                 {recordDetail.expectStartTime
                   ? moment(recordDetail.expectStartTime).format('YYYY/MM/DD')
                   : null}
@@ -368,7 +264,7 @@ export default class CaseMgt extends React.Component {
             }}
             baseUrl=""
             uploadUrl="/api/file/uploadAttachment"
-            wsUrl={`http://${window.location.hostname}:8095`}
+            wsUrl={getSocketUrl(window.location)}
             wsParam = {{ transports:['websocket','xhr-polling','jsonp-polling'], query: { caseId: caseId, recordId: itemid, user: user }}}
             // wsUrl={`ws://localhost:8094/api/case/${caseId}/${itemid}/${iscore}/${user}`}
             onSave={

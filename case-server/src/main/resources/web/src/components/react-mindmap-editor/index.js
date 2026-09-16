@@ -28,7 +28,7 @@ import DoGroup from './toolbar/DoGroup';
 import DoMove from './toolbar/DoMove';
 import Nodes from './toolbar/Nodes';
 import PriorityGroup from './toolbar/PriorityGroup';
-import ProgressGroup from './toolbar/ProgressGroup';
+import ExecutionFloatingPanels from './components/executionFloatingPanels';
 import OperationGroup from './toolbar/OperationGroup';
 import MediaGroup from './toolbar/MediaGroup';
 import TagGroup from './toolbar/TagGroup';
@@ -868,6 +868,7 @@ class KityminderEditor extends Component {
       // redoCnt,
       popoverVisible,
       nowUseList,
+      selectedNode,
     } = this.state;
     const {
       progressShow = true,
@@ -1049,7 +1050,6 @@ class KityminderEditor extends Component {
                     )}
                     <MediaGroup {...childProps} />
                     {!readOnly && <PriorityGroup {...childProps} />}
-                    {progressShow && <ProgressGroup {...childProps} />}
                     {!readOnly && tags && <TagGroup {...childProps} />}
                   </div>
                 </TabPane>
@@ -1094,6 +1094,14 @@ class KityminderEditor extends Component {
           >
             {loading && <Spin className="agiletc-loader" />}
           </div>
+          {minder && progressShow && (
+            <ExecutionFloatingPanels
+              minder={minder}
+              selectedNode={selectedNode}
+              isLock={isLock}
+              onChange={() => this.forceUpdate()}
+            />
+          )}
           <NavBar ref={this.navNode} {...childProps} />
           {this.minder && noteContent && (
             <div
@@ -1126,14 +1134,10 @@ class KityminderEditor extends Component {
           )}
         </div>
         <div
-            style={{
-              display: 'inline-block',
-              position: 'fixed',
-              bottom: '30px',
-              right: '20px',
-              zIndex: 999,
-            }}
-          >
+          className={`editor-save-actions${
+            progressShow ? ' execution-mode' : ''
+          }`}
+        >
             {iscore != 2 && (
               <Button type="primary" onClick={this.onButtonSave}>
                 保存
