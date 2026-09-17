@@ -19,6 +19,7 @@ export const EXECUTION_FILTER_OPTIONS = EXECUTION_MARK_OPTIONS
 export const getExecutionContextOptions = () => EXECUTION_MARK_OPTIONS
 export const renderExecutionContextLabel = item =>
   `<span class="execution-context-label ${item.tone}">${item.label}</span>`
+export const getLockStatusLabel = locked => (locked ? '已锁定' : '已解锁')
 export const PANEL_TOGGLE_ICONS = { expanded: 'right', collapsed: 'left' }
 export const getExecutionOptionClassName = (tone, active) =>
   `execution-status-button ${tone}${active ? ' active' : ''}`

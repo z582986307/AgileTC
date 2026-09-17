@@ -43,6 +43,7 @@ import { NavBar } from './components';
 import { preview, editInput, clipboardRuntime } from './util';
 import {
   getExecutionContextOptions,
+  getLockStatusLabel,
   normalizeRightMindMap,
   renderExecutionContextLabel,
 } from './executionPanelUtils';
@@ -969,11 +970,7 @@ class KityminderEditor extends Component {
                 </Popover>,
                 <Tooltip
                   key="lock"
-                  title={
-                    isLock || locked
-                      ? '用例被锁住，当前只读，点击开关解锁。'
-                      : '用例未上锁，点击开关锁住。'
-                  }
+                  title={getLockStatusLabel(isLock || locked)}
                   getPopupContainer={triggerNode => triggerNode.parentNode}
                 >
                   {type !== 'compare' && (

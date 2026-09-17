@@ -18,6 +18,7 @@ import {
   forceRightMindMap,
   getExecutionContextOptions,
   renderExecutionContextLabel,
+  getLockStatusLabel,
   shouldShowMediaToolbar,
 } from '../src/components/react-mindmap-editor/executionPanelUtils'
 import { getSocketUrl } from '../src/components/react-mindmap-editor/util/socketUrl'
@@ -44,6 +45,10 @@ test('右键标记结果与悬浮窗共用相同文案顺序和语义样式', ()
   expect(renderExecutionContextLabel({ label: '失败', tone: 'danger' })).toBe(
     '<span class="execution-context-label danger">失败</span>',
   )
+})
+test('锁定开关使用状态文案', () => {
+  expect(getLockStatusLabel(true)).toBe('已锁定')
+  expect(getLockStatusLabel(false)).toBe('已解锁')
 })
 test('未测试选项沿用原命令语义清空已选节点结果', () => {
   expect(EXECUTION_MARK_OPTIONS.map(item => item.label)).toEqual([
