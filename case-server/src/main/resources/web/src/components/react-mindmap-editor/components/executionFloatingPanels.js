@@ -13,6 +13,7 @@ import {
   focusFilteredExecutionNodes,
   getExecutionProgress,
   getExecutionOptionClassName,
+  getExecutionMarkGridStyle,
   getNodeNote,
   PANEL_TOGGLE_ICONS,
 } from '../executionPanelUtils'
@@ -182,7 +183,7 @@ class ExecutionFloatingPanels extends Component {
               onClick={() => this.setState({ resultCollapsed: true })}
             />
             <div className="execution-section-label">标记状态</div>
-            <div className="execution-result-actions">
+            <div className="execution-result-actions" style={getExecutionMarkGridStyle()}>
               {EXECUTION_MARK_OPTIONS.map(item => {
                 const active =
                   item.value === undefined

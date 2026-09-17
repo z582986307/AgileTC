@@ -10,6 +10,7 @@ import {
   focusFilteredExecutionNodes,
   getExecutionProgress,
   getExecutionOptionClassName,
+  getExecutionMarkGridStyle,
   countExecutionResults,
   getNodeNote,
   isExecutableNode,
@@ -22,7 +23,12 @@ const node = (data, children = []) => ({
   getData: key => data[key],
 })
 test('执行结果提供稳定的语义样式标识', () => {
-  expect(RESULT_OPTIONS.map(item => item.tone)).toEqual(['success', 'danger', 'warning', 'neutral'])
+  expect(RESULT_OPTIONS.map(item => item.tone)).toEqual(['success', 'danger', 'warning', 'skipped'])
+})
+test('标记结果五个按钮固定为一行等宽布局', () => {
+  expect(getExecutionMarkGridStyle()).toEqual({
+    gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+  })
 })
 test('未测试选项沿用原命令语义清空已选节点结果', () => {
   expect(EXECUTION_MARK_OPTIONS.map(item => item.label)).toEqual([

@@ -2,7 +2,7 @@ export const RESULT_OPTIONS = [
   { key: 'passed', label: '通过', value: 9, icon: 'checked', tone: 'success' },
   { key: 'failed', label: '失败', value: 1, icon: 'fail', tone: 'danger' },
   { key: 'blocked', label: '阻塞', value: 5, icon: 'block', tone: 'warning' },
-  { key: 'skipped', label: '跳过', value: 4, icon: 'skip', tone: 'neutral' },
+  { key: 'skipped', label: '跳过', value: 4, icon: 'skip', tone: 'skipped' },
 ]
 export const EXECUTION_MARK_OPTIONS = [
   {
@@ -19,6 +19,9 @@ export const EXECUTION_FILTER_OPTIONS = EXECUTION_MARK_OPTIONS
 export const PANEL_TOGGLE_ICONS = { expanded: 'right', collapsed: 'left' }
 export const getExecutionOptionClassName = (tone, active) =>
   `execution-status-button ${tone}${active ? ' active' : ''}`
+export const getExecutionMarkGridStyle = () => ({
+  gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+})
 export const shouldShowMediaToolbar = progressShow => !progressShow
 export const canMarkExecutionResult = (selectedCount, isLock) => !isLock && selectedCount > 0
 export const getExecutionProgress = counts => {
