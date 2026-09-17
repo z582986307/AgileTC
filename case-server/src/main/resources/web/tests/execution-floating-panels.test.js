@@ -15,6 +15,7 @@ import {
   getNodeNote,
   isExecutableNode,
   normalizeRightMindMap,
+  forceRightMindMap,
   shouldShowMediaToolbar,
 } from '../src/components/react-mindmap-editor/executionPanelUtils'
 import { getSocketUrl } from '../src/components/react-mindmap-editor/util/socketUrl'
@@ -129,6 +130,23 @@ test('用例默认使用向右逻辑图且所有层级不向左分叉', () => {
   expect(data.theme).toBe('byte-blue')
   expect(data.root.data.layout).toBe('right')
   expect(data.root.children[0].data.layout).toBe('right')
+})
+test('切换思维导图后强制现有节点及后续子节点继承右向布局', () => {
+  const layouts = []
+  const minder = {
+    getRoot: () => ({
+      traverse: callback => {
+        callback({ setLayout: value => layouts.push(value) })
+        callback({ setLayout: value => layouts.push(value) })
+      },
+    }),
+    layout: jest.fn(),
+    fire: jest.fn(),
+  }
+  forceRightMindMap(minder)
+  expect(layouts).toEqual(['right', 'right'])
+  expect(minder.layout).toHaveBeenCalledWith(100)
+  expect(minder.fire).toHaveBeenCalledWith('contentchange')
 })
 test('筛选时折叠整树并只展开命中末级节点路径', () => {
   const actions = []

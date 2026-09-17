@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Select } from 'antd';
 import { template } from '../constants';
+import { forceRightMindMap } from '../executionPanelUtils';
 
 class TemplateGroup extends Component {
   state = {
@@ -9,6 +10,9 @@ class TemplateGroup extends Component {
   handleTemplateChange = (templateValue) => {
     const { minder } = this.props;
     minder.execCommand('Template', templateValue);
+    if (templateValue === 'default') {
+      forceRightMindMap(minder);
+    }
     this.setState({ templateValue });
   };
   render() {

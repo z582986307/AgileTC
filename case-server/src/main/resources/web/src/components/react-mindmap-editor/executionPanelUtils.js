@@ -79,6 +79,11 @@ export const normalizeRightMindMap = data => {
   setRight(data.root)
   return data
 }
+export const forceRightMindMap = minder => {
+  minder.getRoot().traverse(node => node.setLayout('right'))
+  minder.layout(100)
+  minder.fire('contentchange')
+}
 export const focusFilteredExecutionNodes = (root, matchedNodes) => {
   const collapseTree = node => {
     const children = childrenOf(node)
