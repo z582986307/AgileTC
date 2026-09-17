@@ -55,12 +55,12 @@ export const collectSelectedExecutionNodes = selectedNodes => {
 }
 export const normalizeRightMindMap = data => {
   if (!data || !data.root) return data
-  data.template = 'default'
+  data.template = 'right'
   const setRight = node => {
+    node.data = node.data || {}
+    node.data.layout = 'right'
     const children = node.children || []
     children.forEach(child => {
-      child.data = child.data || {}
-      child.data.layout = 'right'
       setRight(child)
     })
   }

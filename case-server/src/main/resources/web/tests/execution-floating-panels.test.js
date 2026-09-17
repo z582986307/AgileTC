@@ -79,13 +79,14 @@ test('选择父级节点时只标记其下所有末级用例', () => {
   expect(collectSelectedExecutionNodes([group])).toEqual([first, second])
   expect(collectSelectedExecutionNodes([group, first])).toEqual([first, second])
 })
-test('用例默认使用思维导图并让所有分支向右', () => {
+test('用例默认使用向右逻辑图且所有层级不向左分叉', () => {
   const data = {
     template: 'fish-bone',
     root: { data: {}, children: [{ data: { layout: 'left' }, children: [] }] },
   }
   expect(normalizeRightMindMap(data)).toBe(data)
-  expect(data.template).toBe('default')
+  expect(data.template).toBe('right')
+  expect(data.root.data.layout).toBe('right')
   expect(data.root.children[0].data.layout).toBe('right')
 })
 test('筛选时折叠整树并只展开命中末级节点路径', () => {
