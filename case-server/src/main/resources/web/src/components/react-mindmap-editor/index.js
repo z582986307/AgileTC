@@ -712,6 +712,14 @@ class KityminderEditor extends Component {
     this.setState({ nowUseList: data?.split(',') || [] });
   }
 
+  handleLockToggle = checked => {
+    if (!this.ws || typeof this.ws.sendMessage !== 'function') {
+      notification.error({ message: '锁定服务未连接，请稍后重试' });
+      return;
+    }
+    this.ws.sendMessage('lock', { message: checked ? 'lock' : 'unlock' });
+  };
+
   handleWsData = data => {
     // if (data === 'pong pong pong') {
     //   this.heartCheck.reset().start(this.ws);
@@ -979,9 +987,7 @@ class KityminderEditor extends Component {
                       checkedChildren={<Icon type="lock" />}
                       unCheckedChildren={<Icon type="unlock" />}
                       checked={isLock || locked}
-                      onClick={checked => {
-                        this.ws.sendMessage('lock', {message: checked ? 'lock' : 'unlock'});
-                      }}
+                      onChange={this.handleLockToggle}
                       className="agiletc-lock"
                     />
                   )}

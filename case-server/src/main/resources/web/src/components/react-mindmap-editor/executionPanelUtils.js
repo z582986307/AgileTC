@@ -30,6 +30,15 @@ export const matchesExecutionFilter = (progress, value) =>
   value === 'pending'
     ? progress === undefined || progress === null || Number(progress) === 0
     : Number(progress) === Number(value)
+export const expandAllExecutionNodes = root => {
+  const expandTree = node => {
+    const children = childrenOf(node)
+    if (!children.length) return
+    node.expand()
+    children.forEach(expandTree)
+  }
+  expandTree(root)
+}
 export const shouldShowMediaToolbar = progressShow => !progressShow
 export const canMarkExecutionResult = (selectedCount, isLock) => !isLock && selectedCount > 0
 export const getExecutionProgress = counts => {

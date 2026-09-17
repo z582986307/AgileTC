@@ -10,6 +10,7 @@ import {
   collectExecutionNodes,
   collectSelectedExecutionNodes,
   countExecutionResults,
+  expandAllExecutionNodes,
   focusFilteredExecutionNodes,
   getExecutionProgress,
   getExecutionOptionClassName,
@@ -57,6 +58,15 @@ class ExecutionFloatingPanels extends Component {
     root.renderTree()
     minder.layout(100)
     minder.select(nodes, true)
+    minder.fire('receiverfocus')
+  }
+  showAll = () => {
+    const { minder } = this.props
+    const root = minder.getRoot()
+    expandAllExecutionNodes(root)
+    root.renderTree()
+    minder.layout(100)
+    minder.select([], true)
     minder.fire('receiverfocus')
   }
   renderFilter() {
@@ -128,6 +138,17 @@ class ExecutionFloatingPanels extends Component {
           </Tooltip>
         </div>
         <div className="execution-filter-grid" aria-label="按执行结果筛选">
+          <Button
+            className="execution-status-button neutral execution-filter-item"
+            aria-label={`展开全部用例 ${counts.total} 条`}
+            onClick={this.showAll}
+          >
+            <span>
+              <i className="execution-status-dot neutral" aria-hidden="true" />
+              全部
+            </span>
+            <strong className="execution-status-count">{counts.total}</strong>
+          </Button>
           {EXECUTION_FILTER_OPTIONS.map(item => {
             const count = item.key === 'untested' ? counts.pending : counts[item.key]
             const value = item.value === undefined ? 'pending' : item.value

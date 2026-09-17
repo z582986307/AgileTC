@@ -5490,9 +5490,9 @@
               visible && node.children.length ? node.getData(EXPAND_STATE_DATA) : 'hide'
             );
             var vector = node
-              .getLayoutVectorIn()
+              .getLayoutVectorOut()
               .normalize(expander.radius + node.getStyle('stroke-width'));
-            var position = node.getVertexIn().offset(vector.reverse());
+            var position = node.getVertexOut().offset(vector);
             this.expander.setTranslate(position);
           },
         });
@@ -6945,7 +6945,7 @@
               .setPathData(CHECK_PATH)
               .fill(CHECK_COLOR);
             fail = new kity.Path().setTranslate(-10, -10).setPathData(FAIL_PATH).fill(FAIL_COLOR);
-            block = new kity.Pie(9, 0).fill(BLOCK_COLOR);
+            block = new kity.Circle(7).fill(BLOCK_COLOR);
             skip = new kity.Path()
               .setTranslate(-10, -10)
               .setScale(0.02)
@@ -6968,9 +6968,6 @@
             this.fail.setVisible(value == 1);
             this.block.setVisible(value == 5);
             this.skip.setVisible(value == 4);
-            if (value == 5) {
-              this.block.setAngle(-180);
-            }
           },
         });
         /**
@@ -9548,8 +9545,7 @@
           return node.getData('layout') || 'right';
         },
         getConnect: function (node) {
-          if (node.getLevel() == 1) return 'arc';
-          return 'bezier';
+          return 'poly';
         },
       });
     },
@@ -9783,16 +9779,16 @@
       theme.register('byte-blue', {
         background: '#ffffff',
         'root-color': '#1e3a5f',
-        'root-background': '#e8f3ff',
-        'root-stroke': '#7cb7f2',
+        'root-background': '#eaf3ff',
+        'root-stroke': '#5b8ff9',
         'root-font-size': 18,
         'root-padding': [10, 20],
         'root-margin': [18, 28],
         'root-radius': 6,
         'root-space': 8,
         'main-color': '#1e3a5f',
-        'main-background': '#f0f7ff',
-        'main-stroke': '#9ac5f0',
+        'main-background': '#eef5ff',
+        'main-stroke': '#8bb8f8',
         'main-stroke-width': 1,
         'main-font-size': 14,
         'main-padding': [6, 14],
@@ -9800,17 +9796,17 @@
         'main-radius': 6,
         'main-space': 5,
         'sub-color': '#334155',
-        'sub-background': '#f8fbff',
-        'sub-stroke': '#c9def5',
+        'sub-background': '#f5f9ff',
+        'sub-stroke': '#bdd6f8',
         'sub-stroke-width': 1,
         'sub-font-size': 12,
         'sub-padding': [5, 10],
         'sub-margin': [6, 12],
         'sub-radius': 5,
         'sub-space': 5,
-        'connect-color': '#9ac5f0',
+        'connect-color': '#5b8ff9',
         'connect-width': 1,
-        'connect-radius': 5,
+        'connect-radius': 0,
         'selected-stroke': '#3370ff',
         'selected-stroke-width': 2,
         'blur-selected-stroke': '#93c5fd',

@@ -12,6 +12,7 @@ import {
   getExecutionOptionClassName,
   getExecutionMarkGridStyle,
   matchesExecutionFilter,
+  expandAllExecutionNodes,
   countExecutionResults,
   getNodeNote,
   isExecutableNode,
@@ -82,6 +83,15 @@ test('执行进度筛选兼容数字和历史字符串状态', () => {
   expect(matchesExecutionFilter(null, 'pending')).toBe(true)
   expect(matchesExecutionFilter(undefined, 'pending')).toBe(true)
   expect(matchesExecutionFilter(9, 1)).toBe(false)
+})
+test('全部筛选展开整棵用例树', () => {
+  const leaf = { getChildren: () => [], expand: jest.fn() }
+  const branch = { getChildren: () => [leaf], expand: jest.fn() }
+  const root = { getChildren: () => [branch], expand: jest.fn() }
+  expandAllExecutionNodes(root)
+  expect(root.expand).toHaveBeenCalled()
+  expect(branch.expand).toHaveBeenCalled()
+  expect(leaf.expand).not.toHaveBeenCalled()
 })
 test('面板展开时箭头向右，收起后入口箭头向左', () => {
   expect(PANEL_TOGGLE_ICONS).toEqual({ expanded: 'right', collapsed: 'left' })
