@@ -6892,8 +6892,8 @@
         var minder = this;
         var PROGRESS_DATA = 'progress';
         // Designed by Akikonata
-        var BG_COLOR = '#FFED83';
-        var PIE_COLOR = '#43BC00';
+        var BG_COLOR = '#F8FAFC';
+        var PIE_COLOR = '#10B981';
         var SHADOW_PATH =
           'M10,3c4.418,0,8,3.582,8,8h1c0-5.523-3.477-10-9-10S1,5.477,1,11h1C2,6.582,5.582,3,10,3z';
         var SHADOW_COLOR = '#8E8E8E';
@@ -6908,13 +6908,14 @@
         });
         var CHECK_PATH =
           'M15.812,7.896l-6.75,6.75l-4.5-4.5L6.25,8.459l2.812,2.803l5.062-5.053L15.812,7.896z';
-        var CHECK_COLOR = '#EEE';
+        var CHECK_COLOR = '#FFFFFF';
         var FAIL_PATH =
           'M5,5l.7,-.7l4.3,4.3l4.3,-4.3l1.4,1.4l-4.3,4.3l4.3,4.3l-1.4,1.4l-4.3,-4.3l-4.3,4.3l-1.4,-1.4l4.3,-4.3l-4.3,-4.3l.7,-.7z';
-        var FAIL_COLOR = '#d81e06';
+        var FAIL_COLOR = '#DC2626';
+        var BLOCK_COLOR = '#F59E0B';
         var SKIP_PATH =
           'M747.3152 415.6416a256.0512 256.0512 0 0 0-489.472 96.768H341.504a170.6496 170.6496 0 0 1 327.6288-58.624l-115.0976 20.9408 227.84 116.736 48.2816-251.392-82.8416 75.5712zM0 512C0 229.2224 229.1712 0 512 0c282.7776 0 512 229.1712 512 512 0 282.7776-229.1712 512-512 512-282.7776 0-512-229.1712-512-512z';
-        var SKIP_COLOR = '#BE96F9';
+        var SKIP_COLOR = '#8B5CF6';
         minder.getPaper().addResource(FRAME_GRAD);
         // 进度图标的图形
         var ProgressIcon = kity.createClass('ProgressIcon', {
@@ -6944,7 +6945,7 @@
               .setPathData(CHECK_PATH)
               .fill(CHECK_COLOR);
             fail = new kity.Path().setTranslate(-10, -10).setPathData(FAIL_PATH).fill(FAIL_COLOR);
-            block = new kity.Pie(9, 0).fill('red');
+            block = new kity.Pie(9, 0).fill(BLOCK_COLOR);
             skip = new kity.Path()
               .setTranslate(-10, -10)
               .setScale(0.02)

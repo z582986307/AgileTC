@@ -364,7 +364,7 @@
 
 .execution-result-actions {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   margin-top: 8px;
 
@@ -443,8 +443,24 @@
   &[disabled]:focus {
     box-shadow: none;
     cursor: not-allowed;
-    opacity: 0.52;
+    opacity: 0.62;
     filter: none;
+  }
+
+  &.danger[disabled],
+  &.danger[disabled]:hover,
+  &.danger[disabled]:focus {
+    color: #dc2626;
+    background: #fef2f2;
+    border-color: #fecaca;
+  }
+
+  &.warning[disabled],
+  &.warning[disabled]:hover,
+  &.warning[disabled]:focus {
+    color: #b45309;
+    background: #fffbeb;
+    border-color: #fde68a;
   }
 }
 

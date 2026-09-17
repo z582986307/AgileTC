@@ -11,6 +11,7 @@ import {
   getExecutionProgress,
   getExecutionOptionClassName,
   getExecutionMarkGridStyle,
+  matchesExecutionFilter,
   countExecutionResults,
   getNodeNote,
   isExecutableNode,
@@ -29,9 +30,9 @@ const node = (data, children = []) => ({
 test('执行结果提供稳定的语义样式标识', () => {
   expect(RESULT_OPTIONS.map(item => item.tone)).toEqual(['success', 'danger', 'warning', 'skipped'])
 })
-test('标记结果五个按钮固定为一行等宽布局', () => {
+test('标记结果按钮按两列等宽换行避免窄悬浮窗重叠', () => {
   expect(getExecutionMarkGridStyle()).toEqual({
-    gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+    gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
   })
 })
 test('右键标记结果与悬浮窗共用相同文案顺序和语义样式', () => {
@@ -74,6 +75,13 @@ test('进度筛选和标记结果共用同一套状态按钮样式', () => {
   expect(getExecutionOptionClassName('warning', true)).toBe(
     'execution-status-button warning active',
   )
+})
+test('执行进度筛选兼容数字和历史字符串状态', () => {
+  expect(matchesExecutionFilter(1, 1)).toBe(true)
+  expect(matchesExecutionFilter('1', 1)).toBe(true)
+  expect(matchesExecutionFilter(null, 'pending')).toBe(true)
+  expect(matchesExecutionFilter(undefined, 'pending')).toBe(true)
+  expect(matchesExecutionFilter(9, 1)).toBe(false)
 })
 test('面板展开时箭头向右，收起后入口箭头向左', () => {
   expect(PANEL_TOGGLE_ICONS).toEqual({ expanded: 'right', collapsed: 'left' })

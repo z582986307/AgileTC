@@ -24,8 +24,12 @@ export const PANEL_TOGGLE_ICONS = { expanded: 'right', collapsed: 'left' }
 export const getExecutionOptionClassName = (tone, active) =>
   `execution-status-button ${tone}${active ? ' active' : ''}`
 export const getExecutionMarkGridStyle = () => ({
-  gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
 })
+export const matchesExecutionFilter = (progress, value) =>
+  value === 'pending'
+    ? progress === undefined || progress === null || Number(progress) === 0
+    : Number(progress) === Number(value)
 export const shouldShowMediaToolbar = progressShow => !progressShow
 export const canMarkExecutionResult = (selectedCount, isLock) => !isLock && selectedCount > 0
 export const getExecutionProgress = counts => {

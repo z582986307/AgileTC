@@ -15,6 +15,7 @@ import {
   getExecutionOptionClassName,
   getExecutionMarkGridStyle,
   getNodeNote,
+  matchesExecutionFilter,
   PANEL_TOGGLE_ICONS,
 } from '../executionPanelUtils'
 
@@ -50,9 +51,7 @@ class ExecutionFloatingPanels extends Component {
     const { minder } = this.props
     const root = minder.getRoot()
     const nodes = collectExecutionNodes(root).filter(node =>
-      value === 'pending'
-        ? node.getData('progress') === undefined || node.getData('progress') === null
-        : node.getData('progress') === value,
+      matchesExecutionFilter(node.getData('progress'), value),
     )
     focusFilteredExecutionNodes(root, nodes)
     root.renderTree()
