@@ -3,7 +3,7 @@ export const initData = {
     data: {
       text: '百度产品',
       image: 'https://www.baidu.com/img/bd_logo1.png?where=super',
-      imageSize: { width: 270, height: 129 }
+      imageSize: { width: 270, height: 129 },
     },
     children: [
       { data: { text: '新闻', note: 'asdadad' } },
@@ -23,14 +23,14 @@ export const initData = {
           'font-weight': 'bold',
           id: 'c22m3p7alqg0',
           note: 'lll',
-          text: 'ddd'
-        }
+          text: 'ddd',
+        },
       },
       { data: { text: '百科', priority: 3 } },
-      { data: { text: '更多', hyperlink: 'http://www.baidu.com/more' } }
-    ]
-  }
-}
+      { data: { text: '更多', hyperlink: 'http://www.baidu.com/more' } },
+    ],
+  },
+};
 
 // hotbox 操作list
 export const buttons = [
@@ -39,10 +39,11 @@ export const buttons = [
   '同级:Enter:AppendSiblingNode',
   '后移:Alt+Down:ArrangeDown',
   '删除:Delete|Backspace:RemoveNode',
-  '上级:Shift+Tab|Shift+Insert:AppendParentNode'
-]
+  '上级:Shift+Tab|Shift+Insert:AppendParentNode',
+];
 // 外观tab 主题list
 export const theme = {
+  'byte-blue': '浅蓝逻辑图',
   classic: '脑图经典',
   'classic-compact': '紧凑经典',
   snow: '温柔冷光',
@@ -62,69 +63,69 @@ export const theme = {
   'fresh-purple-compat': '紧凑紫',
   'fresh-pink-compat': '紧凑粉',
   tianpan: '经典天盘',
-  'tianpan-compact': '紧凑天盘'
-}
+  'tianpan-compact': '紧凑天盘',
+};
 // 外观tab 字号list
-export const fontSizeList = [10, 12, 16, 18, 24, 32, 48]
+export const fontSizeList = [10, 12, 16, 18, 24, 32, 48];
 // 外观tab 字体list
 export const fontFamilyList = [
   {
     name: '宋体',
-    val: '宋体,SimSun'
+    val: '宋体,SimSun',
   },
   {
     name: '微软雅黑',
-    val: '微软雅黑,Microsoft YaHei'
+    val: '微软雅黑,Microsoft YaHei',
   },
   {
     name: '楷体',
-    val: '楷体,楷体_GB2312,SimKai'
+    val: '楷体,楷体_GB2312,SimKai',
   },
   {
     name: '黑体',
-    val: '黑体, SimHei'
+    val: '黑体, SimHei',
   },
   {
     name: '隶书',
-    val: '隶书, SimLi'
+    val: '隶书, SimLi',
   },
   {
     name: 'Andale Mono',
-    val: 'andale mono'
+    val: 'andale mono',
   },
   {
     name: 'Arial',
-    val: 'arial,helvetica,sans-serif'
+    val: 'arial,helvetica,sans-serif',
   },
   {
     name: 'arialBlack',
-    val: 'arial black,avant garde'
+    val: 'arial black,avant garde',
   },
   {
     name: 'Comic Sans Ms',
-    val: 'comic sans ms'
+    val: 'comic sans ms',
   },
   {
     name: 'Impact',
-    val: 'impact,chicago'
+    val: 'impact,chicago',
   },
   {
     name: 'Times New Roman',
-    val: 'times new roman'
+    val: 'times new roman',
   },
   {
     name: 'Sans-Serif',
-    val: 'sans-serif'
-  }
-]
+    val: 'sans-serif',
+  },
+];
 export const template = {
   default: '思维导图',
   tianpan: '天盘图',
   structure: '组织结构图',
   filetree: '目录组织图',
   right: '逻辑结构图',
-  'fish-bone': '鱼骨头图'
-}
+  'fish-bone': '鱼骨头图',
+};
 // 视图tab 展开list
 export const expandToList = {
   1: '展开到一级节点',
@@ -133,8 +134,8 @@ export const expandToList = {
   4: '展开到四级节点',
   5: '展开到五级节点',
   6: '展开到六级节点',
-  9999: '展开全部节点'
-}
+  9999: '展开全部节点',
+};
 // 视图tab 全选list
 export const selectedList = {
   all: '全选',
@@ -142,7 +143,7 @@ export const selectedList = {
   siblings: '选择兄弟节点',
   level: '选择同级节点',
   path: '选择路径',
-  tree: '选择子树'
-}
+  tree: '选择子树',
+};
 // 放大缩小比例
-export const zoom = [10, 20, 30, 40, 50, 60, 80, 100, 120, 150, 180, 200]
+export const zoom = [10, 20, 30, 40, 50, 60, 80, 100, 120, 150, 180, 200];

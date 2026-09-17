@@ -28,7 +28,7 @@ import DoGroup from './toolbar/DoGroup';
 import DoMove from './toolbar/DoMove';
 import Nodes from './toolbar/Nodes';
 import PriorityGroup from './toolbar/PriorityGroup';
-import ProgressGroup from './toolbar/ProgressGroup';
+import ExecutionFloatingPanels from './components/executionFloatingPanels';
 import OperationGroup from './toolbar/OperationGroup';
 import MediaGroup from './toolbar/MediaGroup';
 import TagGroup from './toolbar/TagGroup';
@@ -41,6 +41,7 @@ import ViewGroup from './view';
 import { initData, buttons } from './constants';
 import { NavBar } from './components';
 import { preview, editInput, clipboardRuntime } from './util';
+import { normalizeRightMindMap } from './executionPanelUtils';
 
 const HotBox = window.HotBox;
 
@@ -109,7 +110,7 @@ class KityminderEditor extends Component {
     return this.minder.exportJson();
   };
   setEditerData = data => {
-    this.minder.importJson(data);
+    this.minder.importJson(normalizeRightMindMap(data));
     this.minder.fire('contentchange');
   };
   // 键盘事件的监听
@@ -807,7 +808,7 @@ class KityminderEditor extends Component {
           }
         }
       } else {
-        const dataJson = { ...recv };
+        const dataJson = normalizeRightMindMap({ ...recv });
 
         // this.largeJsonImport(this.minder, data).then(() => {
         //   // 可以给个右下角的loading标记
@@ -846,11 +847,6 @@ class KityminderEditor extends Component {
     this.ws.sendMessage('save', { caseContent: JSON.stringify(this.minder.exportJson()), patch: '', caseVersion: '' });
   }
 
-  onButtonClear = () => {
-    this.ws.sendMessage('save', { caseContent: JSON.stringify(this.minder.exportJson()), patch: '', caseVersion: '' });
-    this.ws.sendMessage('record_clear', { caseContent: '', patch: '', caseVersion: '' });
-  }
-
   render() {
     const {
       minder,
@@ -868,6 +864,7 @@ class KityminderEditor extends Component {
       // redoCnt,
       popoverVisible,
       nowUseList,
+      selectedNode,
     } = this.state;
     const {
       progressShow = true,
@@ -879,6 +876,7 @@ class KityminderEditor extends Component {
       callback,
       iscore,
       type,
+      planCycle,
     } = this.props;
     const childProps = {
       ...this.props,
@@ -1047,9 +1045,8 @@ class KityminderEditor extends Component {
                         handleShowInput={this.handleShowInput}
                       />
                     )}
-                    <MediaGroup {...childProps} />
+                    <MediaGroup {...childProps} executionMode={progressShow} />
                     {!readOnly && <PriorityGroup {...childProps} />}
-                    {progressShow && <ProgressGroup {...childProps} />}
                     {!readOnly && tags && <TagGroup {...childProps} />}
                   </div>
                 </TabPane>
@@ -1094,6 +1091,17 @@ class KityminderEditor extends Component {
           >
             {loading && <Spin className="agiletc-loader" />}
           </div>
+          {minder && progressShow && (
+            <ExecutionFloatingPanels
+              minder={minder}
+              selectedNode={selectedNode}
+              isLock={isLock}
+              planCycle={planCycle}
+              baseUrl={this.props.baseUrl}
+              uploadUrl={this.props.uploadUrl}
+              onChange={() => this.forceUpdate()}
+            />
+          )}
           <NavBar ref={this.navNode} {...childProps} />
           {this.minder && noteContent && (
             <div
@@ -1125,24 +1133,10 @@ class KityminderEditor extends Component {
             </div>
           )}
         </div>
-        <div
-            style={{
-              display: 'inline-block',
-              position: 'fixed',
-              bottom: '30px',
-              right: '20px',
-              zIndex: 999,
-            }}
-          >
+        <div className={`editor-save-actions${progressShow ? ' execution-mode' : ''}`}>
             {iscore != 2 && (
               <Button type="primary" onClick={this.onButtonSave}>
                 保存
-              </Button>
-            )}
-            <span> &nbsp; &nbsp;</span>
-            {iscore == 3 && (
-              <Button type="primary" onClick={this.onButtonClear} >
-                清除执行记录
               </Button>
             )}
           </div>
@@ -1153,6 +1147,7 @@ class KityminderEditor extends Component {
 KityminderEditor.propTypes = {
   priority: PropTypes.any, // priority优先级列表，默认[1,2,3]
   progressShow: PropTypes.any, // 进度toolbar是否显示
+  planCycle: PropTypes.string, // 执行记录计划周期
   readOnly: PropTypes.any, // 是否只读，不可编辑，不展示toolbar
   tags: PropTypes.any, // 标签列表，没有改属性则工具栏不展示
   toolbar: PropTypes.any, // 工具栏其他设置

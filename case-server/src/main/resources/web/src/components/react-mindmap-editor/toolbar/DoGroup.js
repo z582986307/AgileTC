@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button } from 'antd';
+import { Button, Tooltip } from 'antd';
 import jsonDiff from 'fast-json-patch';
 import './DoGroup.scss';
 
@@ -36,7 +36,7 @@ class DoGroup extends Component {
     const doDiff = jsonDiff.compare(lastSnap, headSnap);
     if (diff.length) {
       if (diff.length === 1 && diff[0].path === '/base') {
-        const undoTop = undoDiffs.pop()
+        const undoTop = undoDiffs.pop();
         undoTop.push(diff[0]);
         undoDiffs.push(undoTop);
       } else {
@@ -58,52 +58,55 @@ class DoGroup extends Component {
     let { lastSnap, redoDiffs } = this.state;
     let revertSnap = minder.exportJson();
     redoDiffs.push(jsonDiff.compare(revertSnap, lastSnap));
- 
+
     lastSnap = revertSnap;
     this.setState({ redoDiffs, lastSnap });
   };
 
   // 撤销
-  undo = (notifyInfo) => {
+  undo = notifyInfo => {
     this.notifyInfo = notifyInfo;
     this.setState({ patchLock: true }, () => {
-      console.log('notifyInfo', this.notifyInfo)
+      console.log('notifyInfo', this.notifyInfo);
       const { minder } = this.props;
       let { undoDiffs } = this.state;
       const undoDiff = undoDiffs.pop();
       doDiffs.pop();
       if (undoDiff) {
-        
         if (this.notifyInfo instanceof Object) {
-          this.props.wsInstance.sendMessage('undo',{ message: JSON.stringify(undoDiff) })
-          minder.applyPatches(undoDiff)
+          this.props.wsInstance.sendMessage('undo', {
+            message: JSON.stringify(undoDiff),
+          });
+          minder.applyPatches(undoDiff);
         } else {
           minder.applyPatches(JSON.parse(notifyInfo || '{}'));
         }
-      
+
         this.makeRedoDiff();
       }
       this.setState({ patchLock: false });
     });
   };
   // 重做
-  redo = (notifyInfo) => {
+  redo = notifyInfo => {
     this.notifyInfo = notifyInfo;
     this.setState({ patchLock: true }, () => {
       const { minder } = this.props;
       let { redoDiffs } = this.state;
       const redoDiff = redoDiffs.pop();
-      
-      console.log('pop redoDiffs ?', redoDiffs.length)
+
+      console.log('pop redoDiffs ?', redoDiffs.length);
       if (redoDiff) {
         if (this.notifyInfo instanceof Object) {
-          this.props.wsInstance.sendMessage('redo',{ message: JSON.stringify(redoDiff) })
+          this.props.wsInstance.sendMessage('redo', {
+            message: JSON.stringify(redoDiff),
+          });
           minder.applyPatches(redoDiff);
         } else {
           minder.applyPatches(JSON.parse(notifyInfo || '{}'));
         }
         this.makeUndoDiff();
-        doDiffs.pop()
+        doDiffs.pop();
       }
       this.setState({ patchLock: false });
     });
@@ -134,11 +137,11 @@ class DoGroup extends Component {
   };
   hasRedo = () => {
     const { redoDiffs } = this.state;
-    console.log('has redoDiffs ?', redoDiffs.length)
+    console.log('has redoDiffs ?', redoDiffs.length);
     return !!redoDiffs.length;
   };
 
-  updateSelection = (e) => {
+  updateSelection = e => {
     const { patchLock } = this.state;
     const { minder } = this.props;
     if (!patchLock) return;
@@ -166,27 +169,25 @@ class DoGroup extends Component {
       hasRedo = false;
     }
     return (
-      <div className="nodes-actions" style={{ width: 64 }}>
-        <Button
-          title="撤销 (Ctrl + Z)"
-          type="link"
-          icon="left-circle"
-          size="small"
-          onClick={this.undo}
-          disabled={!hasUndo}
-        >
-          撤销
-        </Button>
-        <Button
-          title="重做 (Ctrl + Y)"
-          type="link"
-          size="small"
-          disabled={!hasRedo}
-          icon="right-circle"
-          onClick={this.redo}
-        >
-          重做
-        </Button>
+      <div className="nodes-actions do-group">
+        <Tooltip title="撤销 (Ctrl + Z)">
+          <Button
+            aria-label="撤销"
+            type="link"
+            icon="undo"
+            onClick={this.undo}
+            disabled={!hasUndo}
+          />
+        </Tooltip>
+        <Tooltip title="重做 (Ctrl + Y)">
+          <Button
+            aria-label="重做"
+            type="link"
+            disabled={!hasRedo}
+            icon="redo"
+            onClick={this.redo}
+          />
+        </Tooltip>
       </div>
     );
   }

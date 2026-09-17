@@ -1,11 +1,21 @@
-.km-btn-item.undo:after {
-  content: '撤销';
-  color: #1890ff;
-}
-.km-btn-item.redo:after {
-  content: '重做';
-  color: #1890ff;
-}
-.km-btn-item {
-  height: 24px;
+.do-group {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  width: auto;
+  padding: 0 6px;
+
+  .ant-btn-link {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: #475569;
+    border-radius: 8px;
+
+    &:hover,
+    &:focus {
+      color: #3370ff;
+      background: #eff6ff;
+    }
+  }
 }

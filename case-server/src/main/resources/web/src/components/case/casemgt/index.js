@@ -6,6 +6,7 @@ import './index.scss';
 import request from '@/utils/axios';
 import getQueryString from '@/utils/getCookies';
 import moment from 'moment';
+import { getSocketUrl } from '../../react-mindmap-editor/util/socketUrl';
 import Link from 'umi/link';
 import AgileTCEditor from '../../react-mindmap-editor';
 
@@ -181,6 +182,13 @@ export default class CaseMgt extends React.Component {
       progressShow = true;
       addFactor = false;
     }
+    const planCycle = recordDetail
+      ? `${recordDetail.expectStartTime
+          ? moment(recordDetail.expectStartTime).format('YYYY/MM/DD')
+          : '未设置'} - ${recordDetail.expectEndTime
+          ? moment(recordDetail.expectEndTime).format('YYYY/MM/DD')
+          : '未设置'}`
+      : '';
     return (
       <div style={{ position: 'relative', minHeight: '80vh' }}>
         <Breadcrumb style={{ marginBottom: 8, fontSize: 12 }}>
@@ -211,124 +219,6 @@ export default class CaseMgt extends React.Component {
                   {recordDetail.description}
                 </Tooltip>
               </Col>
-              <Col span={1}></Col>
-
-              <Col span={2} className="font-size-12">
-                通过率: {recordDetail.passRate.toFixed(2) + '%'}
-              </Col>
-              <Col span={2} className="font-size-12">
-                {' '}
-                已测: {recordDetail.passCount + '/' + recordDetail.totalCount}
-              </Col>
-              <Col
-                span={4}
-                style={{ textAlign: 'center' }}
-                className="progress"
-              >
-                <div>
-                  {(
-                    <Tooltip
-                      title={`通过:${recordDetail.successCount} (${(
-                        (recordDetail.successCount / recordDetail.totalCount) *
-                        100
-                      ).toFixed(2)}%)`}
-                      className="font-size-12"
-                    >
-                      <div
-                        className="div-wrap"
-                        style={{
-                          width: `${(recordDetail.successCount /
-                            recordDetail.totalCount) *
-                            100}%`,
-                          backgroundColor: '#61C663',
-                        }}
-                      >
-                        <span></span>
-                      </div>
-                    </Tooltip>
-                  ) || null}
-                  {(recordDetail.blockCount > 0 && (
-                    <Tooltip
-                      title={`阻塞:${recordDetail.blockCount} (${(
-                        (recordDetail.blockCount / recordDetail.totalCount) *
-                        100
-                      ).toFixed(2)}%)`}
-                      className="font-size-12"
-                    >
-                      <div
-                        className="div-wrap"
-                        style={{
-                          width: `${(recordDetail.blockCount /
-                            recordDetail.totalCount) *
-                            100}%`,
-                          backgroundColor: '#85A1D6',
-                        }}
-                      >
-                        <span></span>
-                      </div>
-                    </Tooltip>
-                  )) ||
-                    null}
-                  {(recordDetail.bugNum > 0 && (
-                    <Tooltip
-                      title={`失败:${recordDetail.bugNum} (${(
-                        (recordDetail.bugNum / recordDetail.totalCount) *
-                        100
-                      ).toFixed(2)}%)`}
-                    >
-                      <div
-                        className="div-wrap"
-                        style={{
-                          width: `${(recordDetail.bugNum /
-                            recordDetail.totalCount) *
-                            100}%`,
-                          backgroundColor: '#FF7575',
-                        }}
-                      >
-                        <span></span>
-                      </div>
-                    </Tooltip>
-                  )) ||
-                    null}
-                  {(recordDetail.totalCount - recordDetail.passCount > 0 && (
-                    <Tooltip
-                      title={`未执行:${recordDetail.totalCount -
-                        recordDetail.passCount} (${(
-                        ((recordDetail.totalCount - recordDetail.passCount) /
-                          recordDetail.totalCount) *
-                        100
-                      ).toFixed(2)}%)`}
-                    >
-                      <div
-                        className="div-wrap"
-                        style={{
-                          width: `${((recordDetail.totalCount -
-                            recordDetail.passCount) /
-                            recordDetail.totalCount) *
-                            100}%`,
-                          backgroundColor: '#EDF0FA',
-                        }}
-                      >
-                        <span></span>
-                      </div>
-                    </Tooltip>
-                  )) ||
-                    null}
-                </div>
-              </Col>
-              <Col span={1}></Col>
-              <Col span={2} className="font-size-12">
-                计划周期:
-              </Col>
-              <Col span={4} className="font-size-12">
-                {recordDetail.expectStartTime
-                  ? moment(recordDetail.expectStartTime).format('YYYY/MM/DD')
-                  : null}
-                -{' '}
-                {recordDetail.expectEndTime
-                  ? moment(recordDetail.expectEndTime).format('YYYY/MM/DD')
-                  : null}
-              </Col>
             </Row>
           )) ||
             null}
@@ -356,6 +246,7 @@ export default class CaseMgt extends React.Component {
             tags={['前置条件', '执行步骤', '预期结果']}
             iscore={iscore}
             progressShow={progressShow}
+            planCycle={planCycle}
             readOnly={readOnly}
             mediaShow={!progressShow}
             editorStyle={{ height: 'calc(100vh - 100px)' }}
@@ -368,7 +259,7 @@ export default class CaseMgt extends React.Component {
             }}
             baseUrl=""
             uploadUrl="/api/file/uploadAttachment"
-            wsUrl={`http://${window.location.hostname}:8095`}
+            wsUrl={getSocketUrl(window.location)}
             wsParam = {{ transports:['websocket','xhr-polling','jsonp-polling'], query: { caseId: caseId, recordId: itemid, user: user }}}
             // wsUrl={`ws://localhost:8094/api/case/${caseId}/${itemid}/${iscore}/${user}`}
             onSave={

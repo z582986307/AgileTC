@@ -1,6 +1,12 @@
 import React, { Component } from 'react';
 import { Button, Dropdown, Menu, Icon } from 'antd';
-import { LinkModal, ImageModal, NoteDrawer, NoteAddDrawer } from '../components';
+import {
+  LinkModal,
+  ImageModal,
+  NoteDrawer,
+  NoteAddDrawer,
+} from '../components';
+import { shouldShowMediaToolbar } from '../executionPanelUtils';
 import './MediaGroup.scss';
 
 class MediaGroup extends Component {
@@ -9,7 +15,7 @@ class MediaGroup extends Component {
     showNote: false,
     showImage: false,
     noteStatus: null,
-    drawerVisible: false
+    drawerVisible: false,
   };
   handleLinkMenuClick = ({ key }) => {
     if (key === 'add' || key === 'edit') {
@@ -42,7 +48,7 @@ class MediaGroup extends Component {
     const selectedNode = minder.getSelectedNode();
     return (
       <Menu
-        onClick={(params) => {
+        onClick={params => {
           if (key === 'hyperlink') this.handleLinkMenuClick(params);
           if (key === 'image') this.handleImageMenuClick(params);
           if (key === 'note') this.handleNoteMenuClick(params);
@@ -61,12 +67,21 @@ class MediaGroup extends Component {
       minder,
       toolbar = {},
       isLock,
-      toolbarCustom = { custom: null, title: '自定义' }
+      toolbarCustom = { custom: null, title: '自定义' },
     } = this.props;
-    const { showLink, showImage, showNote, noteStatus, drawerVisible } = this.state;
+    const showMediaActions = shouldShowMediaToolbar(this.props.executionMode);
+    const {
+      showLink,
+      showImage,
+      showNote,
+      noteStatus,
+      drawerVisible,
+    } = this.state;
 
     let disabled = minder.getSelectedNodes().length === 0;
     if (isLock) disabled = true;
+    if (!showMediaActions && !toolbar.addFactor && !toolbarCustom.custom)
+      return null;
 
     const linkMenu = this.renderMenu('链接', 'hyperlink');
     const imageMenu = this.renderMenu('图片', 'image');
@@ -74,27 +89,33 @@ class MediaGroup extends Component {
     return (
       <div
         className="nodes-actions"
-        style={{ textAlign: 'center', minWidth: 200, paddingRight: 6 }}
+        style={{
+          textAlign: 'center',
+          minWidth: showMediaActions ? 200 : 0,
+          paddingRight: 6,
+        }}
       >
-        <Dropdown
-          overlay={linkMenu}
-          trigger={['click']}
-          disabled={disabled}
-          getPopupContainer={(triggerNode) => triggerNode.parentNode}
-        >
-          <Button type="link" size="small" className="big-icon">
-            <Icon type="link" style={{ fontSize: '1.6em' }} />
-            <br />
-            链接
-            <Icon type="caret-down" />
-          </Button>
-        </Dropdown>
-        {toolbar.image !== false && (
+        {showMediaActions && (
+          <Dropdown
+            overlay={linkMenu}
+            trigger={['click']}
+            disabled={disabled}
+            getPopupContainer={triggerNode => triggerNode.parentNode}
+          >
+            <Button type="link" size="small" className="big-icon">
+              <Icon type="link" style={{ fontSize: '1.6em' }} />
+              <br />
+              链接
+              <Icon type="caret-down" />
+            </Button>
+          </Dropdown>
+        )}
+        {showMediaActions && toolbar.image !== false && (
           <Dropdown
             overlay={imageMenu}
             trigger={['click']}
             disabled={disabled}
-            getPopupContainer={(triggerNode) => triggerNode.parentNode}
+            getPopupContainer={triggerNode => triggerNode.parentNode}
           >
             <Button type="link" size="small" className="big-icon">
               <Icon type="picture" style={{ fontSize: '1.6em' }} />
@@ -104,19 +125,21 @@ class MediaGroup extends Component {
             </Button>
           </Dropdown>
         )}
-        <Dropdown
-          overlay={noteMenu}
-          trigger={['click']}
-          disabled={disabled}
-          getPopupContainer={(triggerNode) => triggerNode.parentNode}
-        >
-          <Button type="link" size="small" className="big-icon">
-            <Icon type="file-text" style={{ fontSize: '1.6em' }} />
-            <br />
-            备注
-            <Icon type="caret-down" />
-          </Button>
-        </Dropdown>
+        {showMediaActions && (
+          <Dropdown
+            overlay={noteMenu}
+            trigger={['click']}
+            disabled={disabled}
+            getPopupContainer={triggerNode => triggerNode.parentNode}
+          >
+            <Button type="link" size="small" className="big-icon">
+              <Icon type="file-text" style={{ fontSize: '1.6em' }} />
+              <br />
+              备注
+              <Icon type="caret-down" />
+            </Button>
+          </Dropdown>
+        )}
         {toolbar.addFactor && (
           <Dropdown
             overlay={
@@ -126,9 +149,14 @@ class MediaGroup extends Component {
             }
             trigger={['click']}
             disabled={disabled}
-            getPopupContainer={(triggerNode) => triggerNode.parentNode}
+            getPopupContainer={triggerNode => triggerNode.parentNode}
           >
-            <Button type="link" size="small" className="big-icon" style={{ marginRight: 10 }}>
+            <Button
+              type="link"
+              size="small"
+              className="big-icon"
+              style={{ marginRight: 10 }}
+            >
               <Icon type="tool" style={{ fontSize: '1.6em' }} />
               <br />
               工具
