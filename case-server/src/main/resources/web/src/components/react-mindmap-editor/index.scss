@@ -384,16 +384,22 @@
       border-color: #34d399;
     }
 
-    &.danger.active {
-      color: #b91c1c;
-      background: #fef2f2;
-      border-color: #f87171;
+    &.success:not([disabled]) {
+      color: #047857;
+      background: #f0fdf4;
+      border-color: #bbf7d0;
     }
 
-    &.warning.active {
+    &.danger:not([disabled]) {
+      color: #b91c1c;
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
+    &.warning:not([disabled]) {
       color: #b45309;
       background: #fffbeb;
-      border-color: #fbbf24;
+      border-color: #fde68a;
     }
 
     &.neutral.active {
@@ -407,6 +413,10 @@
       background: #f1f5f9;
       border-color: #94a3b8;
     }
+
+    &.success.active { border-color: #34d399; }
+    &.danger.active { border-color: #f87171; }
+    &.warning.active { border-color: #fbbf24; }
   }
 }
 
@@ -454,9 +464,10 @@
 .execution-panel-collapse-handle.ant-btn {
   position: absolute;
   top: 12px;
-  left: -63px;
+  left: -34px;
+  width: 34px;
   height: 34px;
-  padding: 0 10px;
+  padding: 0;
   color: #64748b;
   background: #fff;
   border-color: #e2e8f0;
@@ -582,6 +593,10 @@
 
   &.neutral {
     background: #64748b;
+  }
+
+  &.untested {
+    background: #94a3b8;
   }
 }
 

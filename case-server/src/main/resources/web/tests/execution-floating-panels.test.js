@@ -2,6 +2,7 @@
 import {
   RESULT_OPTIONS,
   EXECUTION_MARK_OPTIONS,
+  EXECUTION_FILTER_OPTIONS,
   canMarkExecutionResult,
   collectExecutionNodes,
   collectSelectedExecutionNodes,
@@ -26,6 +27,15 @@ test('未测试选项沿用原命令语义清空已选节点结果', () => {
     '跳过',
   ])
   expect(EXECUTION_MARK_OPTIONS[0].value).toBeUndefined()
+})
+test('结果筛选模块包含全部五种末级用例状态', () => {
+  expect(EXECUTION_FILTER_OPTIONS.map(item => item.label)).toEqual([
+    '未测试',
+    '通过',
+    '失败',
+    '阻塞',
+    '跳过',
+  ])
 })
 test('执行结果沿用原逻辑：选中任意数量节点即可标记', () => {
   expect(canMarkExecutionResult(0, false)).toBe(false)

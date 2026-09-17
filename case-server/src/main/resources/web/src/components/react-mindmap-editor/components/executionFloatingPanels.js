@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { Button, Icon, Input, message, Tooltip } from 'antd'
 import { CustomIcon } from './index'
 import {
+  EXECUTION_FILTER_OPTIONS,
   EXECUTION_MARK_OPTIONS,
   RESULT_OPTIONS,
   canMarkExecutionResult,
@@ -61,7 +62,7 @@ class ExecutionFloatingPanels extends Component {
       return (
         <Button
           className="execution-filter-rail"
-          icon="bar-chart"
+          icon="right"
           aria-label="展开执行进度"
           title="展开执行进度"
           onClick={() => this.setState({ filterCollapsed: false })}
@@ -76,11 +77,9 @@ class ExecutionFloatingPanels extends Component {
           className="execution-panel-collapse-handle"
           icon="left"
           aria-label="收起计划周期与执行进度"
-          title="收起"
+          title="收起执行进度"
           onClick={() => this.setState({ filterCollapsed: true })}
-        >
-          收起
-        </Button>
+        />
         <div className="execution-plan-cycle">
           <span>计划周期</span>
           <strong>{this.props.planCycle || '未设置'}</strong>
@@ -124,6 +123,27 @@ class ExecutionFloatingPanels extends Component {
             />
           </Tooltip>
         </div>
+        <div className="execution-filter-grid" aria-label="按执行结果筛选">
+          {EXECUTION_FILTER_OPTIONS.map(item => {
+            const count = item.key === 'untested' ? counts.pending : counts[item.key]
+            const value = item.value === undefined ? 'pending' : item.value
+            return (
+              <button
+                type="button"
+                className={`execution-filter-item ${item.tone}`}
+                aria-label={`筛选${item.label}用例 ${count} 条`}
+                key={item.key}
+                onClick={() => this.filter(value)}
+              >
+                <span>
+                  <i className={`execution-status-dot ${item.tone}`} aria-hidden="true" />
+                  {item.label}
+                </span>
+                <strong>{count}</strong>
+              </button>
+            )
+          })}
+        </div>
       </section>
     )
   }
@@ -142,7 +162,7 @@ class ExecutionFloatingPanels extends Component {
         {this.state.resultCollapsed ? (
           <Button
             className="execution-result-rail"
-            icon="check-circle"
+            icon="right"
             aria-label="展开标记结果"
             title="展开标记结果"
             onClick={() => this.setState({ resultCollapsed: false })}
@@ -155,11 +175,9 @@ class ExecutionFloatingPanels extends Component {
               className="execution-panel-collapse-handle"
               icon="left"
               aria-label="收起标记结果"
-              title="收起"
+              title="收起标记结果"
               onClick={() => this.setState({ resultCollapsed: true })}
-            >
-              收起
-            </Button>
+            />
             <div className="execution-section-label">标记状态</div>
             <div className="execution-result-actions">
               {EXECUTION_MARK_OPTIONS.map(item => {

@@ -15,6 +15,7 @@ export const EXECUTION_MARK_OPTIONS = [
   },
   ...RESULT_OPTIONS,
 ]
+export const EXECUTION_FILTER_OPTIONS = EXECUTION_MARK_OPTIONS
 export const canMarkExecutionResult = (selectedCount, isLock) => !isLock && selectedCount > 0
 export const getExecutionProgress = counts => {
   const completed = counts.passed + counts.failed + counts.blocked + counts.skipped
