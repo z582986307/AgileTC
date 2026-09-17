@@ -16,6 +16,9 @@ export const EXECUTION_MARK_OPTIONS = [
   ...RESULT_OPTIONS,
 ]
 export const EXECUTION_FILTER_OPTIONS = EXECUTION_MARK_OPTIONS
+export const getExecutionContextOptions = () => EXECUTION_MARK_OPTIONS
+export const renderExecutionContextLabel = item =>
+  `<span class="execution-context-label ${item.tone}">${item.label}</span>`
 export const PANEL_TOGGLE_ICONS = { expanded: 'right', collapsed: 'left' }
 export const getExecutionOptionClassName = (tone, active) =>
   `execution-status-button ${tone}${active ? ' active' : ''}`

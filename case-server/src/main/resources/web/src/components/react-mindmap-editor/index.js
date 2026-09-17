@@ -41,7 +41,11 @@ import ViewGroup from './view';
 import { initData, buttons } from './constants';
 import { NavBar } from './components';
 import { preview, editInput, clipboardRuntime } from './util';
-import { normalizeRightMindMap } from './executionPanelUtils';
+import {
+  getExecutionContextOptions,
+  normalizeRightMindMap,
+  renderExecutionContextLabel,
+} from './executionPanelUtils';
 
 const HotBox = window.HotBox;
 
@@ -314,27 +318,16 @@ class KityminderEditor extends Component {
         enable: () => progressShow,
       });
       const progress = hotbox.state('progress');
-      '1459'.replace(/./g, p => {
-        let label = '失败';
-        if (p === '4') label = '不执行';
-        if (p === '5') label = '阻塞';
-        if (p === '9') label = '通过';
+      getExecutionContextOptions().forEach(item => {
         progress.button({
           position: 'ring',
-          label,
-          key: label,
+          label: item.label,
+          key: item.label,
+          render: () => renderExecutionContextLabel(item),
           action: () => {
-            minder.execCommand('Progress', parseInt(p));
+            minder.execCommand('Progress', item.value);
           },
         });
-      });
-      progress.button({
-        position: 'top',
-        label: '移除',
-        key: 'Del',
-        action: function() {
-          minder.execCommand('Progress', 0);
-        },
       });
       progress.button({
         position: 'top',

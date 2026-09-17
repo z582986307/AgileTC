@@ -16,6 +16,8 @@ import {
   isExecutableNode,
   normalizeRightMindMap,
   forceRightMindMap,
+  getExecutionContextOptions,
+  renderExecutionContextLabel,
   shouldShowMediaToolbar,
 } from '../src/components/react-mindmap-editor/executionPanelUtils'
 import { getSocketUrl } from '../src/components/react-mindmap-editor/util/socketUrl'
@@ -30,6 +32,18 @@ test('标记结果五个按钮固定为一行等宽布局', () => {
   expect(getExecutionMarkGridStyle()).toEqual({
     gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
   })
+})
+test('右键标记结果与悬浮窗共用相同文案顺序和语义样式', () => {
+  expect(getExecutionContextOptions().map(item => [item.label, item.tone])).toEqual([
+    ['未测试', 'untested'],
+    ['通过', 'success'],
+    ['失败', 'danger'],
+    ['阻塞', 'warning'],
+    ['跳过', 'skipped'],
+  ])
+  expect(renderExecutionContextLabel({ label: '失败', tone: 'danger' })).toBe(
+    '<span class="execution-context-label danger">失败</span>',
+  )
 })
 test('未测试选项沿用原命令语义清空已选节点结果', () => {
   expect(EXECUTION_MARK_OPTIONS.map(item => item.label)).toEqual([

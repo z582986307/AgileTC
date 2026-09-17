@@ -641,6 +641,49 @@
   }
 }
 
+.hotbox .state.progress .execution-context-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  height: 30px;
+  padding: 0 10px;
+  font-weight: 600;
+  font-size: 13px;
+  border: 1px solid;
+  border-radius: 8px;
+
+  &.untested {
+    color: #475569;
+    background: #f8fafc;
+    border-color: #cbd5e1;
+  }
+
+  &.success {
+    color: #047857;
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+  }
+
+  &.danger {
+    color: #dc2626;
+    background: #fef2f2;
+    border-color: #fecaca;
+  }
+
+  &.warning {
+    color: #b45309;
+    background: #fffbeb;
+    border-color: #fde68a;
+  }
+
+  &.skipped {
+    color: #7c3aed;
+    background: #f5f3ff;
+    border-color: #ddd6fe;
+  }
+}
+
 .execution-pending {
   margin-top: 10px;
   padding: 8px 10px;
