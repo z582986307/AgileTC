@@ -41,6 +41,7 @@ import ViewGroup from './view';
 import { initData, buttons } from './constants';
 import { NavBar } from './components';
 import { preview, editInput, clipboardRuntime } from './util';
+import { normalizeRightMindMap } from './executionPanelUtils';
 
 const HotBox = window.HotBox;
 
@@ -109,7 +110,7 @@ class KityminderEditor extends Component {
     return this.minder.exportJson();
   };
   setEditerData = data => {
-    this.minder.importJson(data);
+    this.minder.importJson(normalizeRightMindMap(data));
     this.minder.fire('contentchange');
   };
   // 键盘事件的监听
@@ -807,7 +808,7 @@ class KityminderEditor extends Component {
           }
         }
       } else {
-        const dataJson = { ...recv };
+        const dataJson = normalizeRightMindMap({ ...recv });
 
         // this.largeJsonImport(this.minder, data).then(() => {
         //   // 可以给个右下角的loading标记
@@ -880,6 +881,7 @@ class KityminderEditor extends Component {
       callback,
       iscore,
       type,
+      planCycle,
     } = this.props;
     const childProps = {
       ...this.props,
@@ -1099,6 +1101,7 @@ class KityminderEditor extends Component {
               minder={minder}
               selectedNode={selectedNode}
               isLock={isLock}
+              planCycle={planCycle}
               onChange={() => this.forceUpdate()}
             />
           )}
@@ -1157,6 +1160,7 @@ class KityminderEditor extends Component {
 KityminderEditor.propTypes = {
   priority: PropTypes.any, // priority优先级列表，默认[1,2,3]
   progressShow: PropTypes.any, // 进度toolbar是否显示
+  planCycle: PropTypes.string, // 执行记录计划周期
   readOnly: PropTypes.any, // 是否只读，不可编辑，不展示toolbar
   tags: PropTypes.any, // 标签列表，没有改属性则工具栏不展示
   toolbar: PropTypes.any, // 工具栏其他设置

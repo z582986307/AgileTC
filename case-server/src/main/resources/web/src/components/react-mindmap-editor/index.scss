@@ -402,10 +402,6 @@
       border-color: #94a3b8;
     }
 
-    &.untested {
-      grid-column: 1 / -1;
-    }
-
     &.untested.active {
       color: #475569;
       background: #f1f5f9;
@@ -428,6 +424,51 @@
 
 .execution-filter-panel {
   top: 136px;
+}
+
+.execution-plan-cycle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+
+  span {
+    color: #64748b;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  strong {
+    overflow: hidden;
+    color: #0f172a;
+    font-size: 13px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.execution-panel-collapse-handle.ant-btn {
+  position: absolute;
+  top: 12px;
+  left: -63px;
+  height: 34px;
+  padding: 0 10px;
+  color: #64748b;
+  background: #fff;
+  border-color: #e2e8f0;
+  border-right: 0;
+  border-radius: 8px 0 0 8px;
+  box-shadow: -4px 6px 16px rgba(15, 23, 42, 0.08);
+
+  &:hover,
+  &:focus {
+    color: #3370ff;
+    border-color: #93c5fd;
+  }
 }
 
 .execution-filter-item {
@@ -497,6 +538,16 @@
   display: block;
   height: 100%;
   min-width: 0;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+
+  &:focus {
+    position: relative;
+    z-index: 1;
+    outline: 2px solid #3370ff;
+    outline-offset: -2px;
+  }
 
   &.success { background: #10b981; }
   &.danger { background: #ef4444; }

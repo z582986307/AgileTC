@@ -7,7 +7,9 @@ import {
   RESULT_OPTIONS,
   canMarkExecutionResult,
   collectExecutionNodes,
+  collectSelectedExecutionNodes,
   countExecutionResults,
+  focusFilteredExecutionNodes,
   getExecutionProgress,
   getNodeNote,
 } from '../executionPanelUtils'
@@ -23,7 +25,14 @@ class ExecutionFloatingPanels extends Component {
       this.setState({ note: getNodeNote(this.props.selectedNode) })
   }
   mark = value => {
-    this.props.minder.execCommand('Progress', value)
+    const { minder } = this.props
+    const selectedNodes = [...minder.getSelectedNodes()]
+    const executionNodes = collectSelectedExecutionNodes(selectedNodes)
+    if (!executionNodes.length) return
+    minder.select(executionNodes, true)
+    minder.execCommand('Progress', value)
+    minder.select(selectedNodes, true)
+    minder.fire('receiverfocus')
     this.props.onChange()
   }
   saveNote = () => {
@@ -32,11 +41,18 @@ class ExecutionFloatingPanels extends Component {
     message.success('备注已保存')
   }
   filter = value => {
-    const nodes = collectExecutionNodes(this.props.minder.getRoot()).filter(
-      node => value === 'all' || node.getData('progress') === value,
+    const { minder } = this.props
+    const root = minder.getRoot()
+    const nodes = collectExecutionNodes(root).filter(node =>
+      value === 'pending'
+        ? node.getData('progress') === undefined || node.getData('progress') === null
+        : node.getData('progress') === value,
     )
-    this.props.minder.select(nodes, true)
-    this.props.minder.fire('receiverfocus')
+    focusFilteredExecutionNodes(root, nodes)
+    root.renderTree()
+    minder.layout(100)
+    minder.select(nodes, true)
+    minder.fire('receiverfocus')
   }
   renderFilter() {
     const counts = countExecutionResults(this.props.minder.getRoot())
@@ -46,8 +62,8 @@ class ExecutionFloatingPanels extends Component {
         <Button
           className="execution-filter-rail"
           icon="bar-chart"
-          aria-label="展开筛选与进度"
-          title="展开筛选与进度"
+          aria-label="展开执行进度"
+          title="展开执行进度"
           onClick={() => this.setState({ filterCollapsed: false })}
         >
           执行进度
@@ -55,29 +71,22 @@ class ExecutionFloatingPanels extends Component {
       )
     }
     return (
-      <section className="execution-filter-panel" aria-label="筛选与进度">
-        <header className="execution-panel-header">
-          <span className="execution-panel-heading">
-            <span className="execution-panel-icon">
-              <Icon type="filter" />
-            </span>
-            <span>
-              <strong>筛选与进度</strong>
-              <small>按执行状态快速定位</small>
-            </span>
-          </span>
-          <span className="execution-total-badge">{progress.percent}%</span>
-          <Button
-            type="link"
-            className="execution-panel-icon-button"
-            icon="right"
-            aria-label="收起筛选与进度"
-            title="收起筛选与进度"
-            onClick={() => this.setState({ filterCollapsed: true })}
-          />
-        </header>
+      <section className="execution-filter-panel" aria-label="计划周期与执行进度">
+        <Button
+          className="execution-panel-collapse-handle"
+          icon="left"
+          aria-label="收起计划周期与执行进度"
+          title="收起"
+          onClick={() => this.setState({ filterCollapsed: true })}
+        >
+          收起
+        </Button>
+        <div className="execution-plan-cycle">
+          <span>计划周期</span>
+          <strong>{this.props.planCycle || '未设置'}</strong>
+        </div>
         <div className="execution-progress-summary">
-          <span>执行进度</span>
+          <span>已执行用例</span>
           <strong>
             {progress.completed} / {progress.total}
           </strong>
@@ -92,8 +101,11 @@ class ExecutionFloatingPanels extends Component {
         >
           {RESULT_OPTIONS.map(item => (
             <Tooltip title={`${item.label} ${counts[item.key]}`} key={item.key}>
-              <span
+              <button
+                type="button"
                 className={`execution-progress-segment ${item.tone}`}
+                aria-label={`筛选${item.label}用例 ${counts[item.key]} 条`}
+                onClick={() => this.filter(item.value)}
                 style={{
                   width: `${progress.total ? (counts[item.key] / progress.total) * 100 : 0}%`,
                 }}
@@ -101,32 +113,16 @@ class ExecutionFloatingPanels extends Component {
             </Tooltip>
           ))}
           <Tooltip title={`未测试 ${counts.pending}`}>
-            <span
+            <button
+              type="button"
               className="execution-progress-segment pending"
+              aria-label={`筛选未测试用例 ${counts.pending} 条`}
+              onClick={() => this.filter('pending')}
               style={{
                 width: `${progress.total ? (counts.pending / progress.total) * 100 : 100}%`,
               }}
             />
           </Tooltip>
-        </div>
-        <div className="execution-filter-grid">
-          {RESULT_OPTIONS.map(item => (
-            <button
-              type="button"
-              key={item.key}
-              className={`execution-filter-item ${item.tone}`}
-              onClick={() => this.filter(item.value)}
-            >
-              <span>
-                <i className={`execution-status-dot ${item.tone}`} aria-hidden="true" />
-                {item.label}
-              </span>
-              <strong>{counts[item.key]}</strong>
-            </button>
-          ))}
-        </div>
-        <div className="execution-pending">
-          未执行 <strong>{counts.pending}</strong>
         </div>
       </section>
     )
@@ -136,10 +132,10 @@ class ExecutionFloatingPanels extends Component {
     const selectedCount = this.props.minder.getSelectedNodes().length
     const markDisabled = !canMarkExecutionResult(selectedCount, isLock)
     const noteDisabled = isLock || selectedCount !== 1 || !selectedNode
-    const selectedProgress = selectedNode && selectedNode.getData('progress')
-    let selectionLabel = '选择用例后可标记'
-    if (!markDisabled)
-      selectionLabel = selectedNode ? selectedNode.getText() : `已选择 ${selectedCount} 个用例`
+    const selectedProgress =
+      selectedNode && selectedNode.getChildren().length === 0
+        ? selectedNode.getData('progress')
+        : '__parent__'
     return (
       <React.Fragment>
         {this.renderFilter()}
@@ -155,27 +151,15 @@ class ExecutionFloatingPanels extends Component {
           </Button>
         ) : (
           <section className="execution-result-panel" aria-label="执行结果">
-            <header className="execution-panel-header">
-              <span className="execution-panel-heading">
-                <span className="execution-panel-icon">
-                  <Icon type="check-circle" />
-                </span>
-                <span>
-                  <strong>执行结果</strong>
-                  <small title={selectedNode ? selectedNode.getText() : undefined}>
-                    {selectionLabel}
-                  </small>
-                </span>
-              </span>
-              <Button
-                type="link"
-                className="execution-panel-icon-button"
-                icon="right"
-                aria-label="收起标记结果"
-                title="收起标记结果"
-                onClick={() => this.setState({ resultCollapsed: true })}
-              />
-            </header>
+            <Button
+              className="execution-panel-collapse-handle"
+              icon="left"
+              aria-label="收起标记结果"
+              title="收起"
+              onClick={() => this.setState({ resultCollapsed: true })}
+            >
+              收起
+            </Button>
             <div className="execution-section-label">标记状态</div>
             <div className="execution-result-actions">
               {EXECUTION_MARK_OPTIONS.map(item => {
@@ -229,5 +213,6 @@ ExecutionFloatingPanels.propTypes = {
   selectedNode: PropTypes.object,
   isLock: PropTypes.bool,
   onChange: PropTypes.func.isRequired,
+  planCycle: PropTypes.string,
 }
 export default ExecutionFloatingPanels

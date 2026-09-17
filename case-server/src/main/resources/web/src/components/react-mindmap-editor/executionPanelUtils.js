@@ -5,7 +5,6 @@ export const RESULT_OPTIONS = [
   { key: 'skipped', label: '跳过', value: 4, icon: 'skip', tone: 'neutral' },
 ]
 export const EXECUTION_MARK_OPTIONS = [
-  ...RESULT_OPTIONS,
   {
     key: 'untested',
     label: '未测试',
@@ -14,6 +13,7 @@ export const EXECUTION_MARK_OPTIONS = [
     tone: 'untested',
     antIcon: true,
   },
+  ...RESULT_OPTIONS,
 ]
 export const canMarkExecutionResult = (selectedCount, isLock) => !isLock && selectedCount > 0
 export const getExecutionProgress = counts => {
@@ -33,6 +33,63 @@ export const collectExecutionNodes = root => {
   }
   visit(root)
   return nodes
+}
+export const collectSelectedExecutionNodes = selectedNodes => {
+  const nodes = []
+  const seen = new Set()
+  selectedNodes.forEach(selectedNode => {
+    const visit = node => {
+      if (isExecutableNode(node)) {
+        if (!seen.has(node)) {
+          seen.add(node)
+          nodes.push(node)
+        }
+        return
+      }
+      childrenOf(node).forEach(visit)
+    }
+    visit(selectedNode)
+  })
+  return nodes
+}
+export const normalizeRightMindMap = data => {
+  if (!data || !data.root) return data
+  data.template = 'default'
+  const setRight = node => {
+    const children = node.children || []
+    children.forEach(child => {
+      child.data = child.data || {}
+      child.data.layout = 'right'
+      setRight(child)
+    })
+  }
+  setRight(data.root)
+  return data
+}
+export const focusFilteredExecutionNodes = (root, matchedNodes) => {
+  const collapseTree = node => {
+    const children = childrenOf(node)
+    if (!children.length) return
+    node.collapse()
+    children.forEach(collapseTree)
+  }
+  collapseTree(root)
+  root.expand()
+  const expanded = new Set([root])
+  matchedNodes.forEach(node => {
+    const path = []
+    let parent = node.parent
+    while (parent && parent !== root) {
+      path.unshift(parent)
+      parent = parent.parent
+    }
+    path.forEach(item => {
+      if (!expanded.has(item)) {
+        expanded.add(item)
+        item.expand()
+      }
+    })
+  })
 }
 export const countExecutionResults = root => {
   const counts = { passed: 0, failed: 0, blocked: 0, skipped: 0, pending: 0, total: 0 }

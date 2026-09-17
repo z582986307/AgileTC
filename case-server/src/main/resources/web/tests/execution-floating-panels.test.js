@@ -4,10 +4,13 @@ import {
   EXECUTION_MARK_OPTIONS,
   canMarkExecutionResult,
   collectExecutionNodes,
+  collectSelectedExecutionNodes,
+  focusFilteredExecutionNodes,
   getExecutionProgress,
   countExecutionResults,
   getNodeNote,
   isExecutableNode,
+  normalizeRightMindMap,
 } from '../src/components/react-mindmap-editor/executionPanelUtils'
 import { getSocketUrl } from '../src/components/react-mindmap-editor/util/socketUrl'
 const node = (data, children = []) => ({ getChildren: () => children, getData: key => data[key] })
@@ -16,13 +19,13 @@ test('执行结果提供稳定的语义样式标识', () => {
 })
 test('未测试选项沿用原命令语义清空已选节点结果', () => {
   expect(EXECUTION_MARK_OPTIONS.map(item => item.label)).toEqual([
+    '未测试',
     '通过',
     '失败',
     '阻塞',
     '跳过',
-    '未测试',
   ])
-  expect(EXECUTION_MARK_OPTIONS[4].value).toBeUndefined()
+  expect(EXECUTION_MARK_OPTIONS[0].value).toBeUndefined()
 })
 test('执行结果沿用原逻辑：选中任意数量节点即可标记', () => {
   expect(canMarkExecutionResult(0, false)).toBe(false)
@@ -58,6 +61,51 @@ test('只允许末级用例执行并统计结果', () => {
     total: 3,
   })
   expect(getNodeNote(passed)).toBe('已核对')
+})
+test('选择父级节点时只标记其下所有末级用例', () => {
+  const first = node({})
+  const second = node({})
+  const group = node({}, [first, second])
+  expect(collectSelectedExecutionNodes([group])).toEqual([first, second])
+  expect(collectSelectedExecutionNodes([group, first])).toEqual([first, second])
+})
+test('用例默认使用思维导图并让所有分支向右', () => {
+  const data = {
+    template: 'fish-bone',
+    root: { data: {}, children: [{ data: { layout: 'left' }, children: [] }] },
+  }
+  expect(normalizeRightMindMap(data)).toBe(data)
+  expect(data.template).toBe('default')
+  expect(data.root.children[0].data.layout).toBe('right')
+})
+test('筛选时折叠整树并只展开命中末级节点路径', () => {
+  const actions = []
+  const makeNode = (name, children = []) => {
+    const item = {
+      name,
+      children,
+      getChildren: () => children,
+      collapse: () => actions.push(`collapse:${name}`),
+      expand: () => actions.push(`expand:${name}`),
+    }
+    children.forEach(child => {
+      child.parent = item
+    })
+    return item
+  }
+  const passed = makeNode('passed')
+  const failed = makeNode('failed')
+  const passedGroup = makeNode('passed-group', [passed])
+  const failedGroup = makeNode('failed-group', [failed])
+  const root = makeNode('root', [passedGroup, failedGroup])
+  focusFilteredExecutionNodes(root, [passed])
+  expect(actions).toEqual([
+    'collapse:root',
+    'collapse:passed-group',
+    'collapse:failed-group',
+    'expand:root',
+    'expand:passed-group',
+  ])
 })
 test('独立 HTTP 服务自动使用相邻 Socket 端口', () => {
   expect(getSocketUrl({ protocol: 'http:', hostname: 'localhost', port: '8194' })).toBe(
