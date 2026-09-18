@@ -364,14 +364,16 @@
 
 .execution-result-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, calc((100% - 6px) / 2));
   gap: 6px;
   grid-auto-rows: 38px;
   margin-top: 8px;
 
   > span {
+    display: block;
     width: 100%;
     min-width: 0;
+    height: 38px;
   }
 }
 
@@ -436,7 +438,8 @@
 
   &.active {
     font-weight: 600;
-    box-shadow: inset 0 0 0 1px currentColor, 0 0 0 3px rgba(51, 112, 255, 0.08);
+    border-color: currentColor;
+    box-shadow: none;
   }
 
   &[disabled],
@@ -468,38 +471,38 @@
 }
 
 .execution-status-icon {
-  display: inline-flex;
+  display: inline-block;
   flex: 0 0 18px;
-  align-items: center;
-  justify-content: center;
   width: 18px;
   height: 18px;
-  color: #fff;
-  font-weight: 700;
-  font-size: 12px;
-  font-style: normal;
-  line-height: 18px;
-  border-radius: 50%;
+
+  circle {
+    fill: currentColor;
+  }
+
+  path {
+    fill: #fff;
+  }
 
   &.untested {
-    background: #94a3b8;
+    color: #94a3b8;
   }
   &.success {
-    background: #22b573;
+    color: #22b573;
   }
   &.danger {
-    background: #f04438;
+    color: #f04438;
   }
   &.warning {
-    background: #f59e0b;
+    color: #f59e0b;
   }
   &.skipped {
-    background: #8b5cf6;
+    color: #8b5cf6;
   }
 }
 
 .execution-status-button[disabled] .execution-status-icon {
-  background: #cbd5e1;
+  color: #cbd5e1;
 }
 
 .execution-panel-footer {
@@ -680,6 +683,7 @@
   }
 }
 
+.hotbox .state.main .top,
 .hotbox .state.progress .top {
   display: flex;
   flex-direction: column;
@@ -698,6 +702,28 @@
 
   .key {
     display: none;
+  }
+}
+
+.hotbox .state.main .top .button {
+  width: 144px;
+  margin: 0;
+  padding: 9px 12px;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+
+  &.enabled:hover,
+  &.enabled:focus {
+    background: #eff6ff;
+    border-color: #93c5fd;
+
+    .label,
+    .key {
+      color: #2563eb;
+    }
   }
 }
 
@@ -745,14 +771,18 @@
   }
 }
 
-.hotbox .state.expand .top {
+.hotbox .state.expandRoot .top,
+.hotbox .state.expandLevels .top {
+  position: absolute;
+  top: 0 !important;
+  left: 0 !important;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  transform: translate(-76px, -122px);
+  transform: none;
 
   .button {
-    width: 152px;
+    width: 176px;
     margin: 0;
     padding: 8px 12px;
     text-align: left;
@@ -760,7 +790,22 @@
     border: 1px solid #e2e8f0;
     border-radius: 7px;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+
+    &.enabled:hover,
+    &.enabled:focus {
+      background: #eff6ff;
+      border-color: #93c5fd;
+
+      .label,
+      .key {
+        color: #2563eb;
+      }
+    }
   }
+}
+
+.hotbox .state.expandRoot .top .button {
+  width: 104px;
 }
 
 .mindmap-history-actions {
@@ -770,18 +815,40 @@
   z-index: 25;
 
   .do-group {
+    gap: 8px;
     margin: 0;
-    padding: 4px;
-    background: rgba(255, 255, 255, 0.96);
-    border-color: #dbe3ef;
-    border-radius: 8px;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+    padding: 0;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 
-  .ant-btn-link {
-    width: 34px;
-    height: 34px;
+  .do-group .ant-btn-link {
+    width: 32px;
+    height: 32px;
     color: #475569;
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid #dbe3ef;
+    border-radius: 7px;
+    box-shadow: 0 3px 10px rgba(15, 23, 42, 0.08);
+
+    &:hover,
+    &:focus {
+      color: #3370ff;
+      background: #eff6ff;
+      border-color: #93c5fd;
+      box-shadow: 0 3px 10px rgba(51, 112, 255, 0.14);
+    }
+
+    &[disabled],
+    &[disabled]:hover,
+    &[disabled]:focus {
+      color: #cbd5e1;
+      background: #f8fafc;
+      border-color: #e2e8f0;
+      box-shadow: none;
+    }
   }
 }
 

@@ -172,7 +172,7 @@ class KityminderEditor extends Component {
             x: e.originEvent.clientX - containerRect.left,
             y: e.originEvent.clientY - containerRect.top,
           };
-          setTimeout(() => this.hotbox.active('expand', position), 200);
+          setTimeout(() => this.hotbox.active('expandRoot', position), 200);
         }
       }
       this.setState({
@@ -212,9 +212,16 @@ class KityminderEditor extends Component {
     } = this.props;
     const container = minder.getPaper().container.parentNode;
     const hotbox = new HotBox(container);
-    const expand = hotbox.state('expand');
+    const expandRoot = hotbox.state('expandRoot');
+    expandRoot.button({
+      position: 'top',
+      label: '展开',
+      key: '›',
+      next: 'expandLevels',
+    });
+    const expandLevels = hotbox.state('expandLevels');
     Object.keys(expandToList).forEach(level => {
-      expand.button({
+      expandLevels.button({
         position: 'top',
         label: expandToList[level],
         key: level === '9999' ? '全部' : level,
@@ -224,7 +231,7 @@ class KityminderEditor extends Component {
     const main = hotbox.state('main');
     if (!readOnly) {
       main.button({
-        position: 'center',
+        position: 'top',
         label: '编辑',
         key: 'F2',
         enable: () => !readOnly,
@@ -236,7 +243,7 @@ class KityminderEditor extends Component {
         const key = parts.shift();
         const command = parts.shift();
         main.button({
-          position: 'ring',
+          position: 'top',
           label: label,
           key: key,
           enable: () => !readOnly,
@@ -256,39 +263,6 @@ class KityminderEditor extends Component {
       });
     }
 
-    main.button({
-      position: 'top',
-      label: '撤销',
-      key: 'Ctrl + Z',
-      enable: () => {
-        if (this.groupNode) {
-          
-          return this.groupNode.undo();
-        }
-        return !readOnly;
-      },
-      action: () => {
-        this.handleUndo();
-        // this.groupNode.undo()
-      },
-      next: 'idle',
-    });
-    main.button({
-      position: 'top',
-      label: '重做',
-      key: 'Ctrl + Y',
-      enable: () => {
-        if (this.groupNode) {
-          return this.groupNode.redo();
-        }
-        return !readOnly;
-      },
-      action: () => {
-        this.handleRedo();
-        // this.groupNode.redo()
-      },
-      next: 'idle',
-    });
     if (!readOnly) {
       main.button({
         position: 'top',

@@ -13,7 +13,7 @@ import {
   expandAllExecutionNodes,
   focusFilteredExecutionNodes,
   getExecutionProgress,
-  getExecutionStatusGlyph,
+  EXECUTION_STATUS_PATHS,
   getExecutionOptionClassName,
   getExecutionMarkGridStyle,
   getNodeNote,
@@ -22,9 +22,14 @@ import {
 } from '../executionPanelUtils'
 
 const renderExecutionStatusIcon = item => (
-  <i className={`execution-status-icon ${item.tone}`} aria-hidden="true">
-    {getExecutionStatusGlyph(item)}
-  </i>
+  <svg
+    className={`execution-status-icon ${item.tone}`}
+    viewBox="0 0 20 20"
+    aria-hidden="true"
+  >
+    <circle cx="10" cy="10" r="9" />
+    <path d={EXECUTION_STATUS_PATHS[item.tone]} />
+  </svg>
 )
 
 class ExecutionFloatingPanels extends Component {

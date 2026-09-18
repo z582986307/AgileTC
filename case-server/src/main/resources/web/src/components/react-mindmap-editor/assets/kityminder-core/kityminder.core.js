@@ -6892,33 +6892,20 @@
         var minder = this;
         var PROGRESS_DATA = 'progress';
         // Designed by Akikonata
-        var BG_COLOR = '#F8FAFC';
         var PIE_COLOR = '#10B981';
-        var SHADOW_PATH =
-          'M10,3c4.418,0,8,3.582,8,8h1c0-5.523-3.477-10-9-10S1,5.477,1,11h1C2,6.582,5.582,3,10,3z';
-        var SHADOW_COLOR = '#8E8E8E';
         // jscs:disable maximumLineLength
-        var FRAME_PATH =
-          'M10,0C4.477,0,0,4.477,0,10c0,5.523,4.477,10,10,10s10-4.477,10-10C20,4.477,15.523,0,10,0zM10,18c-4.418,0-8-3.582-8-8s3.582-8,8-8s8,3.582,8,8S14.418,18,10,18z';
-        var FRAME_GRAD = new kity.LinearGradient().pipe(function (g) {
-          g.setStartPosition(0, 0);
-          g.setEndPosition(0, 1);
-          g.addStop(0, '#fff');
-          g.addStop(1, '#ccc');
-        });
         var CHECK_PATH =
           'M15.812,7.896l-6.75,6.75l-4.5-4.5L6.25,8.459l2.812,2.803l5.062-5.053L15.812,7.896z';
         var CHECK_COLOR = '#FFFFFF';
         var FAIL_PATH =
-          'M5,5l.7,-.7l4.3,4.3l4.3,-4.3l1.4,1.4l-4.3,4.3l4.3,4.3l-1.4,1.4l-4.3,-4.3l-4.3,4.3l-1.4,-1.4l4.3,-4.3l-4.3,-4.3l.7,-.7z';
+          'M5,5l1.4,-1.4l3.6,3.6l3.6,-3.6l1.4,1.4l-3.6,3.6l3.6,3.6l-1.4,1.4l-3.6,-3.6l-3.6,3.6l-1.4,-1.4l3.6,-3.6l-3.6,-3.6z';
         var FAIL_COLOR = '#FFFFFF';
         var BLOCK_COLOR = '#F59E0B';
         var BLOCK_PATH =
           'M9,4h2v8H9V4zM9,14h2v2H9v-2z';
         var SKIP_PATH =
-          'M747.3152 415.6416a256.0512 256.0512 0 0 0-489.472 96.768H341.504a170.6496 170.6496 0 0 1 327.6288-58.624l-115.0976 20.9408 227.84 116.736 48.2816-251.392-82.8416 75.5712zM0 512C0 229.2224 229.1712 0 512 0c282.7776 0 512 229.1712 512 512 0 282.7776-229.1712 512-512 512-282.7776 0-512-229.1712-512-512z';
+          'M5,9h7l-2.5,-2.5l1.5,-1.5l5,5l-5,5l-1.5,-1.5l2.5,-2.5h-7z';
         var SKIP_COLOR = '#FFFFFF';
-        minder.getPaper().addResource(FRAME_GRAD);
         // 进度图标的图形
         var ProgressIcon = kity.createClass('ProgressIcon', {
           base: kity.Group,
@@ -6934,14 +6921,8 @@
             this.width = this.height = size;
           },
           create: function () {
-            var bg, pie, shadow, frame, check, fail, block, skip;
-            bg = new kity.Circle(9).fill(BG_COLOR);
+            var pie, check, fail, block, skip;
             pie = new kity.Pie(9, 0).fill(PIE_COLOR);
-            shadow = new kity.Path()
-              .setPathData(SHADOW_PATH)
-              .setTranslate(-10, -10)
-              .fill(SHADOW_COLOR);
-            frame = new kity.Path().setTranslate(-10, -10).setPathData(FRAME_PATH).fill(FRAME_GRAD);
             check = new kity.Path()
               .setTranslate(-10, -10)
               .setPathData(CHECK_PATH)
@@ -6953,10 +6934,9 @@
               .fill('#FFFFFF');
             skip = new kity.Path()
               .setTranslate(-10, -10)
-              .setScale(0.02)
               .setPathData(SKIP_PATH)
               .fill(SKIP_COLOR);
-            this.addShapes([bg, pie, shadow, skip, check, fail, block, frame]);
+            this.addShapes([pie, skip, check, fail, block]);
             this.pie = pie;
             this.check = check;
             this.fail = fail;
