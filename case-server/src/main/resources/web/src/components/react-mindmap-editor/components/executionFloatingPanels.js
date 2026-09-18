@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import { Button, Icon, Input, message, Tooltip } from 'antd'
-import { CustomIcon, ImageModal, LinkModal } from './index'
+import { Button, Input, message, Tooltip } from 'antd'
+import { ImageModal, LinkModal } from './index'
 import {
   EXECUTION_FILTER_OPTIONS,
   EXECUTION_MARK_OPTIONS,
@@ -13,12 +13,19 @@ import {
   expandAllExecutionNodes,
   focusFilteredExecutionNodes,
   getExecutionProgress,
+  getExecutionStatusGlyph,
   getExecutionOptionClassName,
   getExecutionMarkGridStyle,
   getNodeNote,
   matchesExecutionFilter,
   PANEL_TOGGLE_ICONS,
 } from '../executionPanelUtils'
+
+const renderExecutionStatusIcon = item => (
+  <i className={`execution-status-icon ${item.tone}`} aria-hidden="true">
+    {getExecutionStatusGlyph(item)}
+  </i>
+)
 
 class ExecutionFloatingPanels extends Component {
   state = {
@@ -160,7 +167,7 @@ class ExecutionFloatingPanels extends Component {
                 onClick={() => this.filter(value)}
               >
                 <span>
-                  <i className={`execution-status-dot ${item.tone}`} aria-hidden="true" />
+                  {renderExecutionStatusIcon(item)}
                   {item.label}
                 </span>
                 <strong className="execution-status-count">{count}</strong>
@@ -219,11 +226,7 @@ class ExecutionFloatingPanels extends Component {
                       disabled={markDisabled}
                       onClick={() => this.mark(item.value)}
                     >
-                      {item.antIcon ? (
-                        <Icon type={item.icon} />
-                      ) : (
-                        <CustomIcon type={item.icon} disabled={false} />
-                      )}
+                      {renderExecutionStatusIcon(item)}
                       <span>{item.label}</span>
                     </Button>
                   </Tooltip>

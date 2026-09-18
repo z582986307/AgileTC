@@ -17,8 +17,18 @@ export const EXECUTION_MARK_OPTIONS = [
 ]
 export const EXECUTION_FILTER_OPTIONS = EXECUTION_MARK_OPTIONS
 export const getExecutionContextOptions = () => EXECUTION_MARK_OPTIONS
+export const getExecutionStatusGlyph = item =>
+  ({ untested: '−', success: '✓', danger: '×', warning: '!', skipped: '➜' }[
+    item.tone
+  ])
+export const renderExecutionStatusIcon = item =>
+  `<i class="execution-status-icon ${item.tone}" aria-hidden="true">${getExecutionStatusGlyph(
+    item,
+  )}</i>`
 export const renderExecutionContextLabel = item =>
-  `<span class="execution-context-label ${item.tone}">${item.label}</span>`
+  `<span class="execution-context-list execution-context-label ${item.tone}">${renderExecutionStatusIcon(
+    item,
+  )}<span>${item.label}</span></span>`
 export const getLockStatusLabel = locked => (locked ? '已锁定' : '已解锁')
 export const PANEL_TOGGLE_ICONS = { expanded: 'right', collapsed: 'left' }
 export const getExecutionOptionClassName = (tone, active) =>

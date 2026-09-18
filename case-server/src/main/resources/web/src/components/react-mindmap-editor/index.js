@@ -25,25 +25,20 @@ import marked from 'marked';
 import 'hotbox-ui/hotbox';
 import 'hotbox-ui/hotbox.css';
 import DoGroup from './toolbar/DoGroup';
-import DoMove from './toolbar/DoMove';
-import Nodes from './toolbar/Nodes';
-import PriorityGroup from './toolbar/PriorityGroup';
 import ExecutionFloatingPanels from './components/executionFloatingPanels';
-import OperationGroup from './toolbar/OperationGroup';
-import MediaGroup from './toolbar/MediaGroup';
-import TagGroup from './toolbar/TagGroup';
 import ThemeGroup from './outlook/ThemeGroup';
 import TemplateGroup from './outlook/TemplateGroup';
 import ResetLayoutGroup from './outlook/ResetLayoutGroup';
 import StyleGroup from './outlook/StyleGroup';
 import FontGroup from './outlook/FontGroup';
 import ViewGroup from './view';
-import { initData, buttons } from './constants';
+import { expandToList, initData, buttons } from './constants';
 import { NavBar } from './components';
 import { preview, editInput, clipboardRuntime } from './util';
 import {
   getExecutionContextOptions,
   getLockStatusLabel,
+  expandAllExecutionNodes,
   normalizeRightMindMap,
   renderExecutionContextLabel,
 } from './executionPanelUtils';
@@ -75,7 +70,7 @@ class KityminderEditor extends Component {
       noteContent: null,
       showEdit: false,
       inputContent: null,
-      activeTab: '1',
+      activeTab: this.props.type === 'compare' ? '1' : '2',
       showToolBar: this.props.type === 'compare' ? false : true,
       fullScreen: false,
       loading: true,
@@ -116,6 +111,8 @@ class KityminderEditor extends Component {
   };
   setEditerData = data => {
     this.minder.importJson(normalizeRightMindMap(data));
+    expandAllExecutionNodes(this.minder.getRoot());
+    this.minder.layout(100);
     this.minder.fire('contentchange');
   };
   // 键盘事件的监听
@@ -169,6 +166,13 @@ class KityminderEditor extends Component {
           setTimeout(() => {
             this.hotbox.active('main', position);
           }, 200);
+        } else {
+          const containerRect = this.centerNode.getBoundingClientRect();
+          const position = {
+            x: e.originEvent.clientX - containerRect.left,
+            y: e.originEvent.clientY - containerRect.top,
+          };
+          setTimeout(() => this.hotbox.active('expand', position), 200);
         }
       }
       this.setState({
@@ -208,6 +212,15 @@ class KityminderEditor extends Component {
     } = this.props;
     const container = minder.getPaper().container.parentNode;
     const hotbox = new HotBox(container);
+    const expand = hotbox.state('expand');
+    Object.keys(expandToList).forEach(level => {
+      expand.button({
+        position: 'top',
+        label: expandToList[level],
+        key: level === '9999' ? '全部' : level,
+        action: () => minder.execCommand('ExpandToLevel', Number(level)),
+      });
+    });
     const main = hotbox.state('main');
     if (!readOnly) {
       main.button({
@@ -321,7 +334,7 @@ class KityminderEditor extends Component {
       const progress = hotbox.state('progress');
       getExecutionContextOptions().forEach(item => {
         progress.button({
-          position: 'ring',
+          position: 'top',
           label: item.label,
           key: item.label,
           render: () => renderExecutionContextLabel(item),
@@ -821,6 +834,8 @@ class KityminderEditor extends Component {
         }
         window.minderData = undefined;
         this.minder.importJson(dataJson);
+        expandAllExecutionNodes(this.minder.getRoot());
+        this.minder.layout(100);
         window.minderData = dataJson;
 
         // 第一次打开用例，预期base与用例的base保持一直
@@ -1016,37 +1031,6 @@ class KityminderEditor extends Component {
                 this.setState({ activeTab: activeKey });
               }}
             >
-              {type !== 'compare' && (
-                <TabPane tab="思路" key="1">
-                  <div className={tabContentClass}>
-                    <DoGroup
-                      ref={groupNode => (this.groupNode = groupNode)}
-                      initData={this.initData}
-                      {...childProps}
-                      wsInstance={this.ws}
-                    />
-                    {!readOnly && (
-                      <Nodes
-                        initData={this.initData}
-                        {...childProps}
-                        callback={() => {
-                          setTimeout(this.handleShowInput, 300);
-                        }}
-                      />
-                    )}
-                    {!readOnly && <DoMove {...childProps} />}
-                    {!readOnly && (
-                      <OperationGroup
-                        {...childProps}
-                        handleShowInput={this.handleShowInput}
-                      />
-                    )}
-                    <MediaGroup {...childProps} executionMode={progressShow} />
-                    {!readOnly && <PriorityGroup {...childProps} />}
-                    {!readOnly && tags && <TagGroup {...childProps} />}
-                  </div>
-                </TabPane>
-              )}
               <TabPane tab="外观" key={type !== 'compare' ? '2' : '1'}>
                 <div className={tabContentClass}>
                   <ThemeGroup {...childProps} />
@@ -1087,6 +1071,16 @@ class KityminderEditor extends Component {
           >
             {loading && <Spin className="agiletc-loader" />}
           </div>
+          {minder && type !== 'compare' && (
+            <div className="mindmap-history-actions">
+              <DoGroup
+                ref={groupNode => (this.groupNode = groupNode)}
+                initData={this.initData}
+                {...childProps}
+                wsInstance={this.ws}
+              />
+            </div>
+          )}
           {minder && progressShow && (
             <ExecutionFloatingPanels
               minder={minder}

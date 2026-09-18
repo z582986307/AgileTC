@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Icon, Dropdown, Menu, Input } from 'antd';
 import { CustomIcon } from '../components';
-import { expandToList, selectedList } from '../constants';
+import { selectedList } from '../constants';
 
 // 视图tab
 const ViewGroup = props => {
@@ -9,9 +9,6 @@ const ViewGroup = props => {
   const [searchResult, setSearchResult] = useState(null);
   const [searchText, setSearchText] = useState('');
   const { minder, isLock } = props;
-  const handleExpandClick = ({ key }) => {
-    minder.execCommand('ExpandToLevel', Number(key));
-  };
   const makeBoxActive = () => {
     const $container = document.getElementsByClassName(
       'kityminder-core-container',
@@ -124,25 +121,11 @@ const ViewGroup = props => {
     setSelectIndex(_index);
   };
 
-  const expandMenu = (
-    <Menu onClick={handleExpandClick}>{generateMenu(expandToList)}</Menu>
-  );
   const selectedMenu = (
     <Menu onClick={handleSelectClick}>{generateMenu(selectedList)}</Menu>
   );
   return (
     <div className="nodes-actions" style={{ width: '100%' }}>
-      <Dropdown
-        disabled={isLock}
-        overlay={expandMenu}
-        getPopupContainer={triggerNode => triggerNode.parentNode}
-      >
-        <Button type="link" size="small" className="big-icon">
-          <Icon type="arrows-alt" style={{ fontSize: '1.6em' }} />
-          <br />
-          展开 <Icon type="caret-down" />
-        </Button>
-      </Dropdown>
       <Dropdown
         overlay={selectedMenu}
         getPopupContainer={triggerNode => triggerNode.parentNode}

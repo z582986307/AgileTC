@@ -6911,11 +6911,13 @@
         var CHECK_COLOR = '#FFFFFF';
         var FAIL_PATH =
           'M5,5l.7,-.7l4.3,4.3l4.3,-4.3l1.4,1.4l-4.3,4.3l4.3,4.3l-1.4,1.4l-4.3,-4.3l-4.3,4.3l-1.4,-1.4l4.3,-4.3l-4.3,-4.3l.7,-.7z';
-        var FAIL_COLOR = '#DC2626';
+        var FAIL_COLOR = '#FFFFFF';
         var BLOCK_COLOR = '#F59E0B';
+        var BLOCK_PATH =
+          'M9,4h2v8H9V4zM9,14h2v2H9v-2z';
         var SKIP_PATH =
           'M747.3152 415.6416a256.0512 256.0512 0 0 0-489.472 96.768H341.504a170.6496 170.6496 0 0 1 327.6288-58.624l-115.0976 20.9408 227.84 116.736 48.2816-251.392-82.8416 75.5712zM0 512C0 229.2224 229.1712 0 512 0c282.7776 0 512 229.1712 512 512 0 282.7776-229.1712 512-512 512-282.7776 0-512-229.1712-512-512z';
-        var SKIP_COLOR = '#8B5CF6';
+        var SKIP_COLOR = '#FFFFFF';
         minder.getPaper().addResource(FRAME_GRAD);
         // 进度图标的图形
         var ProgressIcon = kity.createClass('ProgressIcon', {
@@ -6945,7 +6947,10 @@
               .setPathData(CHECK_PATH)
               .fill(CHECK_COLOR);
             fail = new kity.Path().setTranslate(-10, -10).setPathData(FAIL_PATH).fill(FAIL_COLOR);
-            block = new kity.Circle(7).fill(BLOCK_COLOR);
+            block = new kity.Path()
+              .setTranslate(-10, -10)
+              .setPathData(BLOCK_PATH)
+              .fill('#FFFFFF');
             skip = new kity.Path()
               .setTranslate(-10, -10)
               .setScale(0.02)
@@ -6959,11 +6964,13 @@
             this.skip = skip;
           },
           setValue: function (value) {
-            if (value !== 4) {
-              this.pie.setAngle((-360 * (value - 1)) / 8).fill(PIE_COLOR);
-            } else {
-              this.pie.setAngle(360).fill('#fff');
-            }
+            var statusColor = {
+              1: '#F04438',
+              4: '#8B5CF6',
+              5: BLOCK_COLOR,
+              9: '#22B573',
+            }[value];
+            this.pie.setAngle(360).fill(statusColor || PIE_COLOR);
             this.check.setVisible(value == 9);
             this.fail.setVisible(value == 1);
             this.block.setVisible(value == 5);
