@@ -36,11 +36,9 @@ import { expandToList, initData, buttons } from './constants';
 import { NavBar } from './components';
 import { preview, editInput, clipboardRuntime } from './util';
 import {
-  getExecutionContextOptions,
   getLockStatusLabel,
   expandAllExecutionNodes,
   normalizeRightMindMap,
-  renderExecutionContextLabel,
 } from './executionPanelUtils';
 
 const HotBox = window.HotBox;
@@ -167,21 +165,18 @@ class KityminderEditor extends Component {
     minder.on('mousedown', e => {
       if (e.originEvent.button === MOUSE_RB) {
         e.preventDefault();
-        const { minder, inputNode } = this;
-        if (minder.getSelectedNode() && minder._status !== 'readonly') {
-          const node = minder.getSelectedNode();
-          const position = editInput(node, inputNode, 'positionOnly');
-          setTimeout(() => {
-            this.hotbox.active('main', position);
-          }, 200);
-        } else {
-          const containerRect = this.centerNode.getBoundingClientRect();
-          const position = {
+        const { minder } = this;
+        const selectedNode = minder.getSelectedNode();
+        const containerRect = this.editorContainer.getBoundingClientRect();
+        this.hotbox.active(HotBox.STATE_IDLE);
+        this.setState({
+          contextMenu: {
             x: e.originEvent.clientX - containerRect.left,
             y: e.originEvent.clientY - containerRect.top,
-          };
-          this.setState({ contextMenu: position });
-        }
+            type: selectedNode ? 'selected' : 'blank',
+            node: selectedNode,
+          },
+        });
       }
       this.setState({
         noteContent: null,
@@ -213,11 +208,7 @@ class KityminderEditor extends Component {
     minder.on('contentchange', this.sendPatch);
   };
   initHotbox = minder => {
-    const {
-      priority = [1, 2, 3],
-      progressShow = false,
-      readOnly = false,
-    } = this.props;
+    const { priority = [1, 2, 3], readOnly = false } = this.props;
     const container = minder.getPaper().container.parentNode;
     const hotbox = new HotBox(container);
     const main = hotbox.state('main');
@@ -289,34 +280,6 @@ class KityminderEditor extends Component {
         next: 'back',
       });
     }
-    if (progressShow) {
-      main.button({
-        position: 'top',
-        label: '结果',
-        key: 'G',
-        next: 'progress',
-        enable: () => progressShow,
-      });
-      const progress = hotbox.state('progress');
-      getExecutionContextOptions().forEach(item => {
-        progress.button({
-          position: 'top',
-          label: item.label,
-          key: item.label,
-          render: () => renderExecutionContextLabel(item),
-          action: () => {
-            minder.execCommand('Progress', item.value);
-          },
-        });
-      });
-      progress.button({
-        position: 'top',
-        label: '返回',
-        key: 'esc',
-        next: 'back',
-      });
-    }
-
     this.hotbox = hotbox;
   };
   handleUndoAck = (data) => {
@@ -875,6 +838,7 @@ class KityminderEditor extends Component {
           className={`kityminder-editor-container${
             fullScreen ? ' full-screen' : ''
           }`}
+          ref={node => (this.editorContainer = node)}
           style={editorStyle}
         >
           {minder && type !== 'compare' && (
@@ -1036,16 +1000,34 @@ class KityminderEditor extends Component {
             }}
           >
             {loading && <Spin className="agiletc-loader" />}
-            {this.state.contextMenu && (
-              <div
-                ref={node => (this.contextMenuRef = node)}
-                className="mindmap-context-menu"
-                style={{
-                  left: this.state.contextMenu.x,
-                  top: this.state.contextMenu.y,
-                }}
-                onMouseDown={event => event.stopPropagation()}
-              >
+          </div>
+          {this.state.contextMenu && (
+            <div
+              ref={node => (this.contextMenuRef = node)}
+              className={`mindmap-context-menu ${
+                this.state.contextMenu.type === 'selected' ? 'selected-node' : ''
+              }`}
+              style={{
+                left: this.state.contextMenu.x,
+                top: this.state.contextMenu.y,
+              }}
+              onMouseDown={event => event.stopPropagation()}
+            >
+              {this.state.contextMenu.type === 'selected' ? (
+                <button
+                  type="button"
+                  className="mindmap-context-menu-item selected-expand"
+                  onClick={() => {
+                    expandAllExecutionNodes(this.state.contextMenu.node);
+                    this.state.contextMenu.node.renderTree();
+                    this.minder.layout(100);
+                    this.setState({ contextMenu: null });
+                  }}
+                >
+                  <Icon type="arrows-alt" />
+                  <span>展开选中节点</span>
+                </button>
+              ) : (
                 <div className="mindmap-context-menu-item has-submenu">
                   <Icon type="arrows-alt" />
                   <Icon type="right" className="mindmap-context-menu-arrow" />
@@ -1065,9 +1047,9 @@ class KityminderEditor extends Component {
                     ))}
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
           {minder && type !== 'compare' && (
             <div className="mindmap-history-actions">
               <DoGroup

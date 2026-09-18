@@ -53,6 +53,7 @@ class ExecutionFloatingPanels extends Component {
     minder.execCommand('Progress', value)
     minder.select(selectedNodes, true)
     minder.fire('receiverfocus')
+    minder.fire('contentchange')
     this.props.onChange()
   }
   saveNote = () => {

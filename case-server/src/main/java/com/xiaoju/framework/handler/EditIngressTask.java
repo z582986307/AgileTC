@@ -68,6 +68,10 @@ public class EditIngressTask extends IngressTask {
             }
 
             room.setCaseContent(roomContentNew.toString());
+            if (room instanceof RecordEntity) {
+                String user = client.getHandshakeData().getSingleUrlParam("user");
+                ((RecordEntity) room).persistExecutionRecord(user);
+            }
 
         } catch (Exception e) {
             LOGGER.error("json 操作失败。", e);

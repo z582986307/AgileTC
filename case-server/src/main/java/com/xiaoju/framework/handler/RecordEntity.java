@@ -40,9 +40,13 @@ public class RecordEntity extends RoomEntity {
     public void removeClient(SocketIOClient client) {
         this.clientMap.remove(client.getSessionId());
         LOGGER.info("remove client, current user number:" + this.clientMap.size());
-        testCase.setGmtModified(new Date(System.currentTimeMillis()));
         String user = client.getHandshakeData().getSingleUrlParam("user");
-        ExecRecord record = recordMapper.selectOne(Long.valueOf(client.getHandshakeData().getSingleUrlParam("recordId")));
+        persistExecutionRecord(user);
+    }
+
+    public synchronized void persistExecutionRecord(String user) {
+        testCase.setGmtModified(new Date(System.currentTimeMillis()));
+        ExecRecord record = recordMapper.selectOne(recordId);
         if (record == null) {
             throw new CaseServerException("执行任务不存在", StatusCode.NOT_FOUND_ENTITY);
         }
@@ -55,7 +59,10 @@ public class RecordEntity extends RoomEntity {
         Integer successCount = jsonObject.getInteger("successCount");
         Integer ignoreCount = jsonObject.getInteger("ignoreCount");
 
-        List<String> names = Arrays.stream(record.getExecutors().split(COMMA)).filter(e->!StringUtils.isEmpty(e)).collect(Collectors.toList());
+        String executors = record.getExecutors();
+        List<String> names = StringUtils.isEmpty(executors)
+                ? new ArrayList<>()
+                : Arrays.stream(executors.split(COMMA)).filter(e->!StringUtils.isEmpty(e)).collect(Collectors.toList());
         long count = names.stream().filter(e -> e.equals(user)).count();
 
         if (count > 0) {
