@@ -20,7 +20,7 @@ export const getExecutionContextOptions = () => EXECUTION_MARK_OPTIONS
 export const EXECUTION_STATUS_PATHS = {
   untested: 'M5 9h10v2H5z',
   success: 'M15.812 7.896l-6.75 6.75-4.5-4.5L6.25 8.459l2.812 2.803 5.062-5.053z',
-  danger: 'M5 5l1.4-1.4L10 7.2l3.6-3.6L15 5l-3.6 3.6L15 12.2l-1.4 1.4L10 10l-3.6 3.6L5 12.2l3.6-3.6z',
+  danger: 'M5.5 6.9L6.9 5.5 10 8.6l3.1-3.1 1.4 1.4-3.1 3.1 3.1 3.1-1.4 1.4L10 11.4l-3.1 3.1-1.4-1.4L8.6 10z',
   warning: 'M9 4h2v8H9V4zm0 10h2v2H9v-2z',
   skipped: 'M5 9h7L9.5 6.5 11 5l5 5-5 5-1.5-1.5L12 11H5z',
 }

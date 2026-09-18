@@ -19,6 +19,8 @@ assert(!editor.includes('<TabPane tab="思路"'), '不应继续展示“思路�
 assert(editor.includes('className="mindmap-history-actions"'), '撤销重做应固定在脑图左上角')
 assert(!view.includes('expandMenu'), '视图工具栏不应继续提供展开菜单')
 assert(panel.includes('renderExecutionStatusIcon(item)'), '悬浮窗结果按钮应使用统一状态图标')
+assert(!panel.includes('<Tooltip title={item.label}'), '结果按钮不应被 Tooltip 包装导致禁用态缩宽')
+assert(panel.includes('title={item.label}'), '结果按钮应保留原生提示')
 assert(utils.includes('execution-context-list'), '右键结果菜单应使用竖排列表样式')
 assert(utils.includes('<svg class="execution-status-icon'), '结果状态应使用统一 SVG 图标')
 assert(
@@ -27,6 +29,7 @@ assert(
   '右键结果菜单应具备竖排布局',
 )
 assert(styles.includes('grid-auto-rows: 38px'), '结果按钮选中前后应保持固定高度')
+assert(styles.includes('> span {') === false || styles.includes('height: 38px'), '结果网格单元应固定高度')
 assert(styles.includes('box-shadow: none;') && styles.includes('&.active'), '选中态不应改变按钮外部尺寸')
 assert(styles.includes('.hotbox .state.expandRoot .top'), '展开一级菜单应有独立样式')
 assert(styles.includes('transform: none;'), '右键菜单左上角应对齐鼠标位置')

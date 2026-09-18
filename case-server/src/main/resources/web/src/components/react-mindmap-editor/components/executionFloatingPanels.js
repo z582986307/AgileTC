@@ -222,19 +222,19 @@ class ExecutionFloatingPanels extends Component {
                     ? selectedProgress === undefined || selectedProgress === null
                     : selectedProgress === item.value
                 return (
-                  <Tooltip title={item.label} key={item.key}>
-                    <Button
-                      className={`${getExecutionOptionClassName(
-                        item.tone,
-                        active,
-                      )} execution-result-button`}
-                      disabled={markDisabled}
-                      onClick={() => this.mark(item.value)}
-                    >
-                      {renderExecutionStatusIcon(item)}
-                      <span>{item.label}</span>
-                    </Button>
-                  </Tooltip>
+                  <Button
+                    key={item.key}
+                    title={item.label}
+                    className={`${getExecutionOptionClassName(
+                      item.tone,
+                      active,
+                    )} execution-result-button`}
+                    disabled={markDisabled}
+                    onClick={() => this.mark(item.value)}
+                  >
+                    {renderExecutionStatusIcon(item)}
+                    <span>{item.label}</span>
+                  </Button>
                 )
               })}
             </div>
