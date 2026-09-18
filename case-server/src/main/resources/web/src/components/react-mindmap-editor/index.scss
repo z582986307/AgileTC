@@ -447,10 +447,7 @@
   &[disabled]:focus {
     box-shadow: none;
     cursor: not-allowed;
-    color: #94a3b8;
-    background: #f8fafc;
-    border-color: #e2e8f0;
-    opacity: 1;
+    opacity: 0.52;
     filter: none;
   }
 }
@@ -499,10 +496,6 @@
   &.skipped {
     color: #8b5cf6;
   }
-}
-
-.execution-status-button[disabled] .execution-status-icon {
-  color: #cbd5e1;
 }
 
 .execution-panel-footer {
@@ -771,41 +764,69 @@
   }
 }
 
-.hotbox .state.expandRoot .top,
-.hotbox .state.expandLevels .top {
+.mindmap-context-menu {
   position: absolute;
-  top: 0 !important;
-  left: 0 !important;
+  z-index: 100;
+  width: 42px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.14);
+}
+
+.mindmap-context-menu-item {
+  position: relative;
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  transform: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  min-height: 32px;
+  padding: 0;
+  color: #475569;
+  font-size: 13px;
+  background: #fff;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
 
-  .button {
-    width: 176px;
-    margin: 0;
-    padding: 8px 12px;
-    text-align: left;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 7px;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-
-    &.enabled:hover,
-    &.enabled:focus {
-      background: #eff6ff;
-      border-color: #93c5fd;
-
-      .label,
-      .key {
-        color: #2563eb;
-      }
-    }
+  &:hover,
+  &:focus {
+    color: #2563eb;
+    background: #eff6ff;
+    outline: none;
   }
 }
 
-.hotbox .state.expandRoot .top .button {
-  width: 104px;
+.mindmap-context-menu-arrow {
+  position: absolute;
+  right: 2px;
+  font-size: 10px;
+}
+
+.mindmap-context-submenu {
+  position: absolute;
+  top: -5px;
+  left: calc(100% + 6px);
+  display: none;
+  width: 168px;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.14);
+}
+
+.mindmap-context-menu-item.has-submenu:hover .mindmap-context-submenu,
+.mindmap-context-menu-item.has-submenu:focus-within .mindmap-context-submenu {
+  display: block;
+}
+
+.mindmap-context-submenu .mindmap-context-menu-item {
+  justify-content: flex-start;
+  width: 100%;
+  padding: 0 10px;
+  text-align: left;
 }
 
 .mindmap-history-actions {

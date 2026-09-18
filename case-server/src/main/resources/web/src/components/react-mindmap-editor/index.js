@@ -78,6 +78,7 @@ class KityminderEditor extends Component {
       locked: false, // 当前session主动锁住
       popoverVisible: false,
       nowUseList: [],
+      contextMenu: null,
     };
     this.base = -1;
     this.expectedBase = -1;
@@ -92,6 +93,7 @@ class KityminderEditor extends Component {
     this.navNode = createRef();
   }
   componentDidMount() {
+    document.addEventListener('mousedown', this.handleContextDismiss);
     setTimeout(() => {
       if (!this.props.readOnly) {
         this.arguments = arguments;
@@ -104,8 +106,14 @@ class KityminderEditor extends Component {
     window.minderData = undefined;
     document.removeEventListener('keydown', this.handleKeyDown);
     clipboardRuntime.removeListener();
+    document.removeEventListener('mousedown', this.handleContextDismiss);
     // this.heartCheck.reset();
   }
+  handleContextDismiss = event => {
+    if (this.contextMenuRef && !this.contextMenuRef.contains(event.target)) {
+      this.setState({ contextMenu: null });
+    }
+  };
   getAllData = () => {
     return this.minder.exportJson();
   };
@@ -172,7 +180,7 @@ class KityminderEditor extends Component {
             x: e.originEvent.clientX - containerRect.left,
             y: e.originEvent.clientY - containerRect.top,
           };
-          setTimeout(() => this.hotbox.active('expandRoot', position), 200);
+          this.setState({ contextMenu: position });
         }
       }
       this.setState({
@@ -212,22 +220,6 @@ class KityminderEditor extends Component {
     } = this.props;
     const container = minder.getPaper().container.parentNode;
     const hotbox = new HotBox(container);
-    const expandRoot = hotbox.state('expandRoot');
-    expandRoot.button({
-      position: 'top',
-      label: '展开',
-      key: '›',
-      next: 'expandLevels',
-    });
-    const expandLevels = hotbox.state('expandLevels');
-    Object.keys(expandToList).forEach(level => {
-      expandLevels.button({
-        position: 'top',
-        label: expandToList[level],
-        key: level === '9999' ? '全部' : level,
-        action: () => minder.execCommand('ExpandToLevel', Number(level)),
-      });
-    });
     const main = hotbox.state('main');
     if (!readOnly) {
       main.button({
@@ -1044,6 +1036,37 @@ class KityminderEditor extends Component {
             }}
           >
             {loading && <Spin className="agiletc-loader" />}
+            {this.state.contextMenu && (
+              <div
+                ref={node => (this.contextMenuRef = node)}
+                className="mindmap-context-menu"
+                style={{
+                  left: this.state.contextMenu.x,
+                  top: this.state.contextMenu.y,
+                }}
+                onMouseDown={event => event.stopPropagation()}
+              >
+                <div className="mindmap-context-menu-item has-submenu">
+                  <Icon type="arrows-alt" />
+                  <Icon type="right" className="mindmap-context-menu-arrow" />
+                  <div className="mindmap-context-submenu">
+                    {Object.keys(expandToList).map(level => (
+                      <button
+                        type="button"
+                        className="mindmap-context-menu-item"
+                        key={level}
+                        onClick={() => {
+                          this.minder.execCommand('ExpandToLevel', Number(level));
+                          this.setState({ contextMenu: null });
+                        }}
+                      >
+                        {expandToList[level]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           {minder && type !== 'compare' && (
             <div className="mindmap-history-actions">
