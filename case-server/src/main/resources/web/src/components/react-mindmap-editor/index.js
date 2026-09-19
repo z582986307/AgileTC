@@ -117,7 +117,6 @@ class KityminderEditor extends Component {
   };
   setEditerData = data => {
     this.minder.importJson(normalizeRightMindMap(data));
-    expandAllExecutionNodes(this.minder.getRoot());
     this.minder.layout(100);
     this.minder.fire('contentchange');
   };
@@ -763,7 +762,6 @@ class KityminderEditor extends Component {
         }
         window.minderData = undefined;
         this.minder.importJson(dataJson);
-        expandAllExecutionNodes(this.minder.getRoot());
         this.minder.layout(100);
         window.minderData = dataJson;
 

@@ -52,6 +52,7 @@ public class RecordEntity extends RoomEntity {
         }
         JSONObject jsonObject = TreeUtil.parse(testCase.getCaseContent());
         JSONObject jsonProgress = jsonObject.getJSONObject("progress");
+        jsonProgress.put("__expandState", collectExpandState(jsonObject.getJSONObject("root")));
         Integer totalCount = jsonObject.getInteger("totalCount");
         Integer passCount = jsonObject.getInteger("passCount");
         Integer failCount = jsonObject.getInteger("failCount");
@@ -135,13 +136,41 @@ public class RecordEntity extends RoomEntity {
             }
 
             TreeUtil.mergeExecRecord(caseContent.getJSONObject("root"), recordObj, ExecCount);
+            applyExpandState(caseContent.getJSONObject("root"), recordObj.getJSONObject("__expandState"));
             retCaseContent = caseContent.toJSONString();
         } else {
             // 如果是全部的，那么直接把testcase 给 merge过来
             JSONObject caseContent = JSON.parseObject(caseContentStr);
             TreeUtil.mergeExecRecord(caseContent.getJSONObject("root"), recordObj, ExecCount);
+            applyExpandState(caseContent.getJSONObject("root"), recordObj.getJSONObject("__expandState"));
             retCaseContent = caseContent.toJSONString();
         }
         return retCaseContent;
+    }
+
+    private JSONObject collectExpandState(JSONObject root) {
+        JSONObject states = new JSONObject();
+        if (root == null) return states;
+        JSONObject data = root.getJSONObject("data");
+        if (data != null && data.getString("id") != null && data.getString("expandState") != null) {
+            states.put(data.getString("id"), data.getString("expandState"));
+        }
+        JSONArray children = root.getJSONArray("children");
+        if (children != null) {
+            for (Object child : children) states.putAll(collectExpandState((JSONObject) child));
+        }
+        return states;
+    }
+
+    private void applyExpandState(JSONObject root, JSONObject states) {
+        if (root == null || states == null) return;
+        JSONObject data = root.getJSONObject("data");
+        if (data != null && data.getString("id") != null && states.containsKey(data.getString("id"))) {
+            data.put("expandState", states.getString(data.getString("id")));
+        }
+        JSONArray children = root.getJSONArray("children");
+        if (children != null) {
+            for (Object child : children) applyExpandState((JSONObject) child, states);
+        }
     }
 }

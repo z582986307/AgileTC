@@ -99,7 +99,7 @@ export const normalizeRightMindMap = data => {
   const setRight = node => {
     node.data = node.data || {}
     node.data.layout = 'right'
-    node.data.expandState = 'expand'
+    if (node.data.expandState == null) node.data.expandState = 'expand'
     const children = node.children || []
     children.forEach(child => {
       setRight(child)

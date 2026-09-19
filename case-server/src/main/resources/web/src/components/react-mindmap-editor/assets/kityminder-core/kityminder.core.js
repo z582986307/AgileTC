@@ -185,6 +185,7 @@
         var abs = Math.abs;
         var pathData = [];
         var radius = Math.min(12, Math.abs(pi.y - po.y) / 2);
+        var radius = Math.min(12, Math.abs(pi.y - po.y) / 2);
         pathData.push('M', r(po.x), r(po.y));
         if (abs(v.x) > abs(v.y)) {
           // x - direction
