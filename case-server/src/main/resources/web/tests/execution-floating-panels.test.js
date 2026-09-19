@@ -167,6 +167,8 @@ test('用例默认使用向右逻辑图且所有层级不向左分叉', () => {
   expect(data.theme).toBe('byte-blue')
   expect(data.root.data.layout).toBe('right')
   expect(data.root.children[0].data.layout).toBe('right')
+  expect(data.root.data.expandState).toBe('expand')
+  expect(data.root.children[0].data.expandState).toBe('expand')
 })
 test('切换思维导图后强制现有节点及后续子节点继承右向布局', () => {
   const layouts = []

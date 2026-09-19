@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import io from './assets/socketio/socket.io.js';
 import { notification } from 'antd';
 import { prepareLargeMindMap } from './largeMindMap';
+import { normalizeRightMindMap } from './executionPanelUtils';
 // import { AsyncStorage } from 'react-native-community/async-storage';
 
 class Socket extends React.Component {
@@ -30,7 +31,9 @@ class Socket extends React.Component {
         websocket.on('disconnect', () => {
             if (typeof this.props.onClose === 'function') this.props.onClose();
             console.log('disconnect happened.')
-            localStorage.setItem(JSON.stringify(this.props.wsParam), JSON.stringify(this.props.wsMinder.exportJson()));
+            if (!this.isExecutionRecord()) {
+                localStorage.setItem(JSON.stringify(this.props.wsParam), JSON.stringify(this.props.wsMinder.exportJson()));
+            }
         });
 
         websocket.on('connect_notify_event', evt => {
@@ -39,8 +42,17 @@ class Socket extends React.Component {
         });
 
         websocket.on('open_event', evt => {
-            const recv = JSON.parse(evt.message || '{}');
+            const recv = normalizeRightMindMap(JSON.parse(evt.message || '{}'));
             const dataJson = prepareLargeMindMap(recv).data;
+
+            if (this.isExecutionRecord()) {
+                localStorage.removeItem(JSON.stringify(this.props.wsParam));
+                window.minderData = undefined;
+                this.props.wsMinder.importJson(dataJson);
+                window.minderData = dataJson;
+                this.expectedBase = this.props.wsMinder.getBase();
+                return;
+            }
             
             try {
                 const cacheContent = prepareLargeMindMap(
@@ -158,10 +170,15 @@ class Socket extends React.Component {
         websocket.emit(type, message);
     }
 
+    isExecutionRecord = () => {
+        const query = this.props.wsParam && this.props.wsParam.query;
+        return Boolean(query && query.recordId && query.recordId !== 'undefined');
+    };
+
     leaveListener(e) {
         e.preventDefault();
         e.returnValue = '内容将被存储到缓存，下次打开相同用例优先从缓存获取！';
-        if (this.props.wsMinder.getBase() > 16) { 
+        if (!this.isExecutionRecord() && this.props.wsMinder.getBase() > 16) {
             localStorage.setItem(JSON.stringify(this.props.wsParam), JSON.stringify(this.props.wsMinder.exportJson()));
         }
     }

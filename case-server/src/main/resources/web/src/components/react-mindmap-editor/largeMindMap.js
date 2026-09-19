@@ -37,18 +37,10 @@ export const prepareLargeMindMap = (
   }
 
   const isLarge = nodes.length > threshold;
-  if (isLarge) {
-    nodes.forEach((node, index) => {
-      if (
-        index > 0 &&
-        node.children &&
-        node.children.length &&
-        node.data
-      ) {
-        node.data.expandState = 'collapse';
-      }
-    });
-  }
+  nodes.forEach(node => {
+    node.data = node.data || {};
+    node.data.expandState = 'expand';
+  });
 
   return { data, isLarge, nodeCount: nodes.length };
 };

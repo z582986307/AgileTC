@@ -69,7 +69,7 @@ class KityminderEditor extends Component {
       showEdit: false,
       inputContent: null,
       activeTab: this.props.type === 'compare' ? '1' : '2',
-      showToolBar: this.props.type === 'compare' ? false : true,
+      showToolBar: false,
       fullScreen: false,
       loading: true,
       isLock: this.props.isLock || false, // 被其他人锁住

@@ -184,6 +184,7 @@
         var r = Math.round;
         var abs = Math.abs;
         var pathData = [];
+        var radius = Math.min(12, Math.abs(pi.y - po.y) / 2);
         pathData.push('M', r(po.x), r(po.y));
         if (abs(v.x) > abs(v.y)) {
           // x - direction
@@ -276,10 +277,12 @@
       var connect = _p.r(11);
       connect.register('poly', function (node, parent, connection, width) {
         // 连线起点和终点
-        var po = parent.getLayoutVertexOut(),
+        var origin = parent.getLayoutVertexOut(),
           pi = node.getLayoutVertexIn();
         // 连线矢量和方向
         var v = parent.getLayoutVectorOut().normalize();
+        var expanderOffset = !parent.isRoot() && parent.children.length ? 14 : 0;
+        var po = origin.offset(parent.getLayoutVectorOut().normalize(expanderOffset));
         var r = Math.round;
         var abs = Math.abs;
         var pathData = [];
@@ -287,29 +290,35 @@
         switch (true) {
           case abs(v.x) > abs(v.y) && v.x < 0:
             // left
-            pathData.push('h', -parent.getStyle('margin-left'));
-            pathData.push('v', pi.y - po.y);
+            pathData.push('h', -Math.max(parent.getStyle('margin-left') - expanderOffset - radius, 0));
+            pathData.push('q', -radius, 0, -radius, pi.y > po.y ? radius : -radius);
+            pathData.push('v', pi.y - po.y - (pi.y > po.y ? radius : -radius));
             pathData.push('H', pi.x);
             break;
 
           case abs(v.x) > abs(v.y) && v.x >= 0:
             // right
-            pathData.push('h', parent.getStyle('margin-right'));
-            pathData.push('v', pi.y - po.y);
+            pathData.push('h', Math.max(parent.getStyle('margin-right') - expanderOffset - radius, 0));
+            pathData.push('q', radius, 0, radius, pi.y > po.y ? radius : -radius);
+            pathData.push('v', pi.y - po.y - (pi.y > po.y ? radius : -radius));
             pathData.push('H', pi.x);
             break;
 
           case abs(v.x) <= abs(v.y) && v.y < 0:
             // top
-            pathData.push('v', -parent.getStyle('margin-top'));
-            pathData.push('h', pi.x - po.x);
+            radius = Math.min(12, Math.abs(pi.x - po.x) / 2);
+            pathData.push('v', -Math.max(parent.getStyle('margin-top') - expanderOffset - radius, 0));
+            pathData.push('q', 0, -radius, pi.x > po.x ? radius : -radius, -radius);
+            pathData.push('h', pi.x - po.x - (pi.x > po.x ? radius : -radius));
             pathData.push('V', pi.y);
             break;
 
           case abs(v.x) <= abs(v.y) && v.y >= 0:
             // bottom
-            pathData.push('v', parent.getStyle('margin-bottom'));
-            pathData.push('h', pi.x - po.x);
+            radius = Math.min(12, Math.abs(pi.x - po.x) / 2);
+            pathData.push('v', Math.max(parent.getStyle('margin-bottom') - expanderOffset - radius, 0));
+            pathData.push('q', 0, radius, pi.x > po.x ? radius : -radius, radius);
+            pathData.push('h', pi.x - po.x - (pi.x > po.x ? radius : -radius));
             pathData.push('V', pi.y);
             break;
         }
@@ -5432,8 +5441,8 @@
           constructor: function (node) {
             this.callBase();
             this.radius = 6;
-            this.outline = new kity.Circle(this.radius).stroke('gray').fill('white');
-            this.sign = new kity.Path().stroke('gray');
+            this.outline = new kity.Circle(this.radius).stroke('#78a9ef').fill('#f4f8ff');
+            this.sign = new kity.Path().stroke('#3370ff');
             this.addShapes([this.outline, this.sign]);
             this.initEvent(node);
             this.setId(utils.uuid('node_expander'));
@@ -9765,33 +9774,33 @@
       };
       theme.register('byte-blue', {
         background: '#ffffff',
-        'root-color': '#1e3a5f',
-        'root-background': '#eaf3ff',
-        'root-stroke': '#5b8ff9',
+        'root-color': '#1f3b64',
+        'root-background': '#e7f1ff',
+        'root-stroke': '#78a9ef',
         'root-font-size': 18,
         'root-padding': [10, 20],
         'root-margin': [18, 28],
         'root-radius': 6,
         'root-space': 8,
-        'main-color': '#1e3a5f',
-        'main-background': '#eef5ff',
-        'main-stroke': '#8bb8f8',
+        'main-color': '#274568',
+        'main-background': '#edf5ff',
+        'main-stroke': '#9bc2f5',
         'main-stroke-width': 1,
         'main-font-size': 14,
         'main-padding': [6, 14],
         'main-margin': 14,
         'main-radius': 6,
         'main-space': 5,
-        'sub-color': '#334155',
-        'sub-background': '#f5f9ff',
-        'sub-stroke': '#bdd6f8',
+        'sub-color': '#334e70',
+        'sub-background': '#f3f8ff',
+        'sub-stroke': '#c5dcf8',
         'sub-stroke-width': 1,
         'sub-font-size': 12,
         'sub-padding': [5, 10],
         'sub-margin': [6, 12],
         'sub-radius': 5,
         'sub-space': 5,
-        'connect-color': '#5b8ff9',
+        'connect-color': '#78a9ef',
         'connect-width': 1,
         'connect-radius': 0,
         'selected-stroke': '#3370ff',
