@@ -31,7 +31,7 @@ import TemplateGroup from './outlook/TemplateGroup';
 import ResetLayoutGroup from './outlook/ResetLayoutGroup';
 import StyleGroup from './outlook/StyleGroup';
 import FontGroup from './outlook/FontGroup';
-import ViewGroup from './view';
+import MindMapSearch from './components/mindMapSearch';
 import { expandToList, initData, buttons } from './constants';
 import { NavBar } from './components';
 import { preview, editInput, clipboardRuntime } from './util';
@@ -870,6 +870,18 @@ class KityminderEditor extends Component {
                 showToolBar ? '' : ' collapsed'
               }`}
               tabBarExtraContent={[
+                type !== 'compare' && (
+                  <Button
+                    key="back"
+                    type="link"
+                    icon="arrow-left"
+                    className="mindmap-back-button"
+                    onClick={() => window.history.back()}
+                  >
+                    返回
+                  </Button>
+                ),
+                type !== 'compare' && <MindMapSearch key="search" minder={minder} />,
                 <Popover
                   key="list"
                   placement="bottomRight"
@@ -949,10 +961,12 @@ class KityminderEditor extends Component {
                 <Button
                   key="show"
                   type="link"
+                  className="mindmap-outlook-toggle"
+                  aria-label={showToolBar ? '收起外观' : '展开外观'}
+                  title={showToolBar ? '收起外观' : '展开外观'}
                   onClick={() => this.setState({ showToolBar: !showToolBar })}
                 >
-                  <Icon type="double-left" rotate={showToolBar ? 90 : -90} />{' '}
-                  {showToolBar ? '收起' : '展开'}
+                  <Icon type={showToolBar ? 'up' : 'down'} />
                 </Button>,
               ]}
               onChange={activeKey => {
@@ -972,13 +986,6 @@ class KityminderEditor extends Component {
                   )}
                 </div>
               </TabPane>
-              {type !== 'compare' && (
-                <TabPane tab="视图" key="3">
-                  <div className={tabContentClass}>
-                    <ViewGroup {...childProps} />
-                  </div>
-                </TabPane>
-              )}
             </Tabs>
           )}
           <div

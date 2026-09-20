@@ -184,8 +184,6 @@
         var r = Math.round;
         var abs = Math.abs;
         var pathData = [];
-        var radius = Math.min(12, Math.abs(pi.y - po.y) / 2);
-        var radius = Math.min(12, Math.abs(pi.y - po.y) / 2);
         pathData.push('M', r(po.x), r(po.y));
         if (abs(v.x) > abs(v.y)) {
           // x - direction
@@ -287,6 +285,7 @@
         var r = Math.round;
         var abs = Math.abs;
         var pathData = [];
+        var radius = Math.min(12, Math.abs(pi.y - po.y) / 2);
         pathData.push('M', r(po.x), r(po.y));
         switch (true) {
           case abs(v.x) > abs(v.y) && v.x < 0:
@@ -9784,8 +9783,8 @@
         'root-radius': 6,
         'root-space': 8,
         'main-color': '#274568',
-        'main-background': '#edf5ff',
-        'main-stroke': '#9bc2f5',
+        'main-background': '#f4f8ff',
+        'main-stroke': '#b8d3f5',
         'main-stroke-width': 1,
         'main-font-size': 14,
         'main-padding': [6, 14],
@@ -9793,8 +9792,8 @@
         'main-radius': 6,
         'main-space': 5,
         'sub-color': '#334e70',
-        'sub-background': '#f3f8ff',
-        'sub-stroke': '#c5dcf8',
+        'sub-background': '#ffffff',
+        'sub-stroke': '#d7e5f5',
         'sub-stroke-width': 1,
         'sub-font-size': 12,
         'sub-padding': [5, 10],

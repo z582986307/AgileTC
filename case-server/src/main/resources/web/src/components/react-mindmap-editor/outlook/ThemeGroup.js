@@ -8,6 +8,7 @@ class ThemeGroup extends Component {
   };
   handleThemeChange = (themeValue) => {
     const { minder } = this.props;
+    if (minder.queryCommandValue('Theme') === themeValue) return;
     minder.execCommand('Theme', themeValue);
     this.setState({ themeValue });
   };
