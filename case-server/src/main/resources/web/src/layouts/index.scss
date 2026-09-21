@@ -1,3 +1,51 @@
+.ant-layout {
+  --control-radius: 10px;
+  --surface-radius: 12px;
+}
+
+.ant-layout .ant-btn:not(.ant-btn-circle):not(.ant-btn-circle-outline),
+.ant-modal .ant-btn:not(.ant-btn-circle):not(.ant-btn-circle-outline) {
+  border-radius: var(--control-radius, 10px);
+}
+
+.ant-layout .ant-input,
+.ant-layout .ant-input-affix-wrapper,
+.ant-layout .ant-input-number,
+.ant-layout .ant-calendar-picker-input,
+.ant-layout .ant-time-picker-input,
+.ant-layout .ant-cascader-picker,
+.ant-layout .ant-select-selection,
+.ant-modal .ant-input,
+.ant-modal .ant-input-affix-wrapper,
+.ant-modal .ant-input-number,
+.ant-modal .ant-calendar-picker-input,
+.ant-modal .ant-time-picker-input,
+.ant-modal .ant-cascader-picker,
+.ant-modal .ant-select-selection {
+  border-radius: var(--control-radius, 10px);
+}
+
+.ant-modal-content {
+  overflow: hidden;
+  border-radius: var(--surface-radius, 12px);
+}
+
+.ant-dropdown-menu,
+.ant-select-dropdown {
+  border-radius: var(--control-radius, 10px);
+}
+
+// 组合控件只统一外轮廓圆角，内部相接边保持连续。
+.ant-btn-group > .ant-btn:not(:first-child):not(:last-child) {
+  border-radius: 0;
+}
+.ant-btn-group > .ant-btn:first-child:not(:last-child) {
+  border-radius: var(--control-radius, 10px) 0 0 var(--control-radius, 10px);
+}
+.ant-btn-group > .ant-btn:last-child:not(:first-child) {
+  border-radius: 0 var(--control-radius, 10px) var(--control-radius, 10px) 0;
+}
+
 .doneHeader {
   background: linear-gradient(to right, #404e67 0, #6f85ad 100%);
   // padding: 0 0 0 240px;

@@ -3,6 +3,7 @@ import withRouter from 'umi/withRouter'
 import { ConfigProvider, Layout } from 'antd'
 import zhCN from 'antd/es/locale/zh_CN'
 import { connect } from 'dva'
+import './index.scss'
 
 const { Content } = Layout
 
