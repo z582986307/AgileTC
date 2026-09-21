@@ -1,13 +1,12 @@
 /* eslint-disable */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Breadcrumb, Row, Button, Col, message, Tooltip } from 'antd';
+import { Row, Button, Col, message, Tooltip } from 'antd';
 import './index.scss';
 import request from '@/utils/axios';
 import getQueryString from '@/utils/getCookies';
 import moment from 'moment';
 import { getSocketUrl } from '../../react-mindmap-editor/util/socketUrl';
-import Link from 'umi/link';
 import AgileTCEditor from '../../react-mindmap-editor';
 
 const getCookies = getQueryString.getCookie;
@@ -200,25 +199,21 @@ export default class CaseMgt extends React.Component {
           >
             返回
           </Button>
-          <Breadcrumb className="case-detail-breadcrumb">
-            <Breadcrumb.Item>
-              <Link className="case-list-link" to="/case/caseList/1">
-                {casedetail ? '用例' : '任务'}列表
-              </Link>
-            </Breadcrumb.Item>
-            <Breadcrumb.Item>
-              {casedetail ? '用例' : '任务'}详情：
+          <div className="case-detail-meta">
+            <span className="case-detail-title">
+              用例详情：
               {recordDetail ? recordDetail.title : ''}
               {casedetail ? casedetail.title : ''}
-            </Breadcrumb.Item>
-          </Breadcrumb>
+            </span>
+            <span className="case-detail-requirement">
+              关联需求：
+              {(recordDetail && recordDetail.requirementIds) ||
+                (casedetail && casedetail.requirementId) ||
+                '未关联'}
+            </span>
+          </div>
         </div>
-        <div
-          style={{
-            padding: 12,
-            background: '#fff',
-          }}
-        >
+        <div className="case-detail-content">
           {(recordDetail && (
             <Row>
               <Col span={6} className="description-case elipsis-case">
@@ -239,13 +234,6 @@ export default class CaseMgt extends React.Component {
                 <Tooltip title={casedetail.description} placement="topLeft">
                   {casedetail.description}
                 </Tooltip>
-              </Col>
-              <Col span={1}></Col>
-              <Col span={2} className="font-size-12">
-                关联需求:
-              </Col>
-              <Col span={14} className="font-size-12">
-                {casedetail ? casedetail.requirementId : ''}
               </Col>
             </Row>
           )) ||
