@@ -195,7 +195,7 @@ export default class CaseMgt extends React.Component {
             type="link"
             icon="arrow-left"
             className="case-detail-back"
-            onClick={() => window.history.back()}
+            onClick={() => this.props.history.push('/case/caseList/1')}
           >
             返回
           </Button>

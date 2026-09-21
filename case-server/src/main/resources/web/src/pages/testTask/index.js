@@ -12,7 +12,7 @@ class casePage extends React.Component {
   }
   render() {
     return getCookies('username') ? (
-      <section style={{ padding: 24 }}>
+      <section style={{ padding: '0 24px 24px' }}>
         <Casemgt
           {...this.props}
           type="oe"
