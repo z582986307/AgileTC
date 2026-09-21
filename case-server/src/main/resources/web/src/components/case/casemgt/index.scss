@@ -34,3 +34,22 @@
  
     overflow:hidden; white-space: nowrap; word-break:break-all;text-overflow:ellipsis;
 }
+.case-detail-heading {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+    margin-bottom: 8px;
+}
+.case-detail-back.ant-btn-link {
+    height: 28px;
+    margin-right: 4px;
+    padding: 0 8px 0 0;
+    color: #4e5969;
+}
+.case-detail-breadcrumb {
+    font-size: 12px;
+}
+.case-list-link {
+    color: #3370ff !important;
+    font-weight: 500;
+}

@@ -286,39 +286,60 @@
         var abs = Math.abs;
         var pathData = [];
         var radius = Math.min(12, Math.abs(pi.y - po.y) / 2);
+        var trunkOffset;
+        var verticalDistance;
+        var verticalDirection;
+        var horizontalDistance;
+        var horizontalDirection;
         pathData.push('M', r(po.x), r(po.y));
         switch (true) {
           case abs(v.x) > abs(v.y) && v.x < 0:
             // left
-            pathData.push('h', -Math.max(parent.getStyle('margin-left') - expanderOffset - radius, 0));
-            pathData.push('q', -radius, 0, -radius, pi.y > po.y ? radius : -radius);
-            pathData.push('v', pi.y - po.y - (pi.y > po.y ? radius : -radius));
+            trunkOffset = -Math.max(parent.getStyle('margin-left') - expanderOffset, 0);
+            verticalDistance = pi.y - po.y;
+            verticalDirection = verticalDistance >= 0 ? 1 : -1;
+            radius = Math.min(radius, Math.abs(pi.x - (po.x + trunkOffset)) / 2);
+            pathData.push('h', trunkOffset);
+            pathData.push('v', verticalDistance - verticalDirection * radius);
+            pathData.push('q', 0, verticalDirection * radius, -radius, verticalDirection * radius);
             pathData.push('H', pi.x);
             break;
 
           case abs(v.x) > abs(v.y) && v.x >= 0:
             // right
-            pathData.push('h', Math.max(parent.getStyle('margin-right') - expanderOffset - radius, 0));
-            pathData.push('q', radius, 0, radius, pi.y > po.y ? radius : -radius);
-            pathData.push('v', pi.y - po.y - (pi.y > po.y ? radius : -radius));
+            trunkOffset = Math.max(parent.getStyle('margin-right') - expanderOffset, 0);
+            verticalDistance = pi.y - po.y;
+            verticalDirection = verticalDistance >= 0 ? 1 : -1;
+            radius = Math.min(radius, Math.abs(pi.x - (po.x + trunkOffset)) / 2);
+            pathData.push('h', trunkOffset);
+            pathData.push('v', verticalDistance - verticalDirection * radius);
+            pathData.push('q', 0, verticalDirection * radius, radius, verticalDirection * radius);
             pathData.push('H', pi.x);
             break;
 
           case abs(v.x) <= abs(v.y) && v.y < 0:
             // top
             radius = Math.min(12, Math.abs(pi.x - po.x) / 2);
-            pathData.push('v', -Math.max(parent.getStyle('margin-top') - expanderOffset - radius, 0));
-            pathData.push('q', 0, -radius, pi.x > po.x ? radius : -radius, -radius);
-            pathData.push('h', pi.x - po.x - (pi.x > po.x ? radius : -radius));
+            trunkOffset = -Math.max(parent.getStyle('margin-top') - expanderOffset, 0);
+            horizontalDistance = pi.x - po.x;
+            horizontalDirection = horizontalDistance >= 0 ? 1 : -1;
+            radius = Math.min(radius, Math.abs(pi.y - (po.y + trunkOffset)) / 2);
+            pathData.push('v', trunkOffset);
+            pathData.push('h', horizontalDistance - horizontalDirection * radius);
+            pathData.push('q', horizontalDirection * radius, 0, horizontalDirection * radius, -radius);
             pathData.push('V', pi.y);
             break;
 
           case abs(v.x) <= abs(v.y) && v.y >= 0:
             // bottom
             radius = Math.min(12, Math.abs(pi.x - po.x) / 2);
-            pathData.push('v', Math.max(parent.getStyle('margin-bottom') - expanderOffset - radius, 0));
-            pathData.push('q', 0, radius, pi.x > po.x ? radius : -radius, radius);
-            pathData.push('h', pi.x - po.x - (pi.x > po.x ? radius : -radius));
+            trunkOffset = Math.max(parent.getStyle('margin-bottom') - expanderOffset, 0);
+            horizontalDistance = pi.x - po.x;
+            horizontalDirection = horizontalDistance >= 0 ? 1 : -1;
+            radius = Math.min(radius, Math.abs(pi.y - (po.y + trunkOffset)) / 2);
+            pathData.push('v', trunkOffset);
+            pathData.push('h', horizontalDistance - horizontalDirection * radius);
+            pathData.push('q', horizontalDirection * radius, 0, horizontalDirection * radius, radius);
             pathData.push('V', pi.y);
             break;
         }

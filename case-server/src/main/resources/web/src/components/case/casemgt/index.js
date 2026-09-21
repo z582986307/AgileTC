@@ -191,18 +191,28 @@ export default class CaseMgt extends React.Component {
       : '';
     return (
       <div style={{ position: 'relative', minHeight: '80vh' }}>
-        <Breadcrumb style={{ marginBottom: 8, fontSize: 12 }}>
-          <Breadcrumb.Item>
-            <Link to="/case/caseList/1">
-              {casedetail ? '用例' : '任务'}管理
-            </Link>
-          </Breadcrumb.Item>
-          <Breadcrumb.Item>
-            {casedetail ? '用例' : '任务'}详情：
-            {recordDetail ? recordDetail.title : ''}
-            {casedetail ? casedetail.title : ''}
-          </Breadcrumb.Item>
-        </Breadcrumb>
+        <div className="case-detail-heading">
+          <Button
+            type="link"
+            icon="arrow-left"
+            className="case-detail-back"
+            onClick={() => window.history.back()}
+          >
+            返回
+          </Button>
+          <Breadcrumb className="case-detail-breadcrumb">
+            <Breadcrumb.Item>
+              <Link className="case-list-link" to="/case/caseList/1">
+                {casedetail ? '用例' : '任务'}列表
+              </Link>
+            </Breadcrumb.Item>
+            <Breadcrumb.Item>
+              {casedetail ? '用例' : '任务'}详情：
+              {recordDetail ? recordDetail.title : ''}
+              {casedetail ? casedetail.title : ''}
+            </Breadcrumb.Item>
+          </Breadcrumb>
+        </div>
         <div
           style={{
             padding: 12,

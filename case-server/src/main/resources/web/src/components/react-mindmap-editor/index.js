@@ -870,17 +870,6 @@ class KityminderEditor extends Component {
                 showToolBar ? '' : ' collapsed'
               }`}
               tabBarExtraContent={[
-                type !== 'compare' && (
-                  <Button
-                    key="back"
-                    type="link"
-                    icon="arrow-left"
-                    className="mindmap-back-button"
-                    onClick={() => window.history.back()}
-                  >
-                    返回
-                  </Button>
-                ),
                 type !== 'compare' && <MindMapSearch key="search" minder={minder} />,
                 <Popover
                   key="list"
@@ -966,6 +955,7 @@ class KityminderEditor extends Component {
                   title={showToolBar ? '收起外观' : '展开外观'}
                   onClick={() => this.setState({ showToolBar: !showToolBar })}
                 >
+                  <span>外观</span>
                   <Icon type={showToolBar ? 'up' : 'down'} />
                 </Button>,
               ]}
@@ -973,7 +963,7 @@ class KityminderEditor extends Component {
                 this.setState({ activeTab: activeKey });
               }}
             >
-              <TabPane tab="外观" key={type !== 'compare' ? '2' : '1'}>
+              <TabPane tab={null} key={type !== 'compare' ? '2' : '1'}>
                 <div className={tabContentClass}>
                   <ThemeGroup {...childProps} />
                   <TemplateGroup {...childProps} />
