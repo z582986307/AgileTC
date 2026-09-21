@@ -875,25 +875,25 @@
 
 .mindmap-history-actions {
   position: absolute;
-  top: 58px;
+  top: 8px;
   left: 12px;
-  z-index: 25;
+  z-index: 100;
 
   .do-group {
     gap: 2px;
     margin: 0;
-    padding: 3px;
-    background: rgba(255, 255, 255, 0.96);
-    border: 1px solid #e5e6eb;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(31, 35, 41, 0.08);
+    padding: 2px;
+    background: #f2f3f5;
+    border: 0;
+    border-radius: 6px;
+    box-shadow: none;
   }
 
   .do-group .ant-btn-link {
     width: 28px;
     height: 28px;
     padding: 0;
-    color: #4e5969;
+    color: #1d2129;
     background: transparent;
     border: 0;
     border-radius: 6px;
@@ -902,16 +902,15 @@
     &:hover,
     &:focus {
       color: #3370ff;
-      background: #f2f3f5;
-      box-shadow: none;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(31, 35, 41, 0.12);
     }
 
     &[disabled],
     &[disabled]:hover,
     &[disabled]:focus {
       color: #cbd5e1;
-      background: #f8fafc;
-      border-color: #e2e8f0;
+      background: transparent;
       box-shadow: none;
     }
   }
