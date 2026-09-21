@@ -917,40 +917,14 @@
   z-index: 100;
 
   .do-group {
-    gap: 2px;
+    gap: 8px;
     margin: 0;
-    padding: 2px;
-    background: #f2f3f5;
-    border: 0;
-    border-radius: 6px;
-    box-shadow: none;
-  }
-
-  .do-group .ant-btn-link {
-    width: 28px;
-    height: 28px;
     padding: 0;
-    color: #1d2129;
     background: transparent;
     border: 0;
-    border-radius: 6px;
     box-shadow: none;
-
-    &:hover,
-    &:focus {
-      color: #3370ff;
-      background: #fff;
-      box-shadow: 0 1px 3px rgba(31, 35, 41, 0.12);
-    }
-
-    &[disabled],
-    &[disabled]:hover,
-    &[disabled]:focus {
-      color: #cbd5e1;
-      background: transparent;
-      box-shadow: none;
-    }
   }
+
 }
 
 .execution-pending {

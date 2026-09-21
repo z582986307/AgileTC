@@ -199,19 +199,17 @@ export default class CaseMgt extends React.Component {
           >
             返回
           </Button>
-          <div className="case-detail-meta">
-            <span className="case-detail-title">
-              用例详情：
-              {recordDetail ? recordDetail.title : ''}
-              {casedetail ? casedetail.title : ''}
-            </span>
-            <span className="case-detail-requirement">
-              关联需求：
-              {(recordDetail && recordDetail.requirementIds) ||
-                (casedetail && casedetail.requirementId) ||
-                '未关联'}
-            </span>
-          </div>
+          <span className="case-detail-title">
+            用例详情：
+            {recordDetail ? recordDetail.title : ''}
+            {casedetail ? casedetail.title : ''}
+          </span>
+          <span className="case-detail-requirement">
+            关联需求：
+            {(recordDetail && recordDetail.requirementIds) ||
+              (casedetail && casedetail.requirementId) ||
+              '未关联'}
+          </span>
         </div>
         <div className="case-detail-content">
           {(recordDetail && (
