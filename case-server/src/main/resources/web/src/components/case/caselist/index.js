@@ -235,7 +235,7 @@ class CaseLists extends React.Component {
     const { match, doneApiPrefix } = this.props;
     const { productLineId } = match.params;
     return (
-      <div className="all-content">
+      <div className="all-content byte-case-list">
         <FileTree
           productLineId={Number(productLineId)}
           doneApiPrefix={doneApiPrefix}

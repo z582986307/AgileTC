@@ -2,7 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import io from './assets/socketio/socket.io.js';
 import { notification } from 'antd';
-import { prepareLargeMindMap } from './largeMindMap';
+import {
+    importMindMapProgressively,
+    prepareLargeMindMap,
+} from './largeMindMap';
 import { normalizeRightMindMap } from './executionPanelUtils';
 // import { AsyncStorage } from 'react-native-community/async-storage';
 
@@ -41,14 +44,14 @@ class Socket extends React.Component {
             if (typeof this.props.handleWsUserStat === 'function') this.props.handleWsUserStat(evt.message);
         });
 
-        websocket.on('open_event', evt => {
+        websocket.on('open_event', async evt => {
             const recv = normalizeRightMindMap(JSON.parse(evt.message || '{}'));
             const dataJson = prepareLargeMindMap(recv).data;
 
             if (this.isExecutionRecord()) {
                 localStorage.removeItem(JSON.stringify(this.props.wsParam));
                 window.minderData = undefined;
-                this.props.wsMinder.importJson(dataJson);
+                await importMindMapProgressively(this.props.wsMinder, dataJson);
                 window.minderData = dataJson;
                 this.expectedBase = this.props.wsMinder.getBase();
                 return;
@@ -68,7 +71,7 @@ class Socket extends React.Component {
                     // websocket.sendMessage('edit', { caseContent: JSON.stringify(cacheContent), patch: null, caseVersion: caseContent.base });
                 } 
                 window.minderData = undefined;
-                this.props.wsMinder.importJson(cacheContent);
+                await importMindMapProgressively(this.props.wsMinder, cacheContent);
                 window.minderData = cacheContent;
                 this.expectedBase = this.props.wsMinder.getBase();
                 // todo 测试版本，暂不清除
@@ -79,7 +82,7 @@ class Socket extends React.Component {
                 } 
 
                 window.minderData = undefined;
-                this.props.wsMinder.importJson(dataJson);
+                await importMindMapProgressively(this.props.wsMinder, dataJson);
                 window.minderData = dataJson;
                 this.expectedBase = this.props.wsMinder.getBase();
 

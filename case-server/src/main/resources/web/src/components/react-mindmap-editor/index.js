@@ -40,6 +40,10 @@ import {
   expandAllExecutionNodes,
   normalizeRightMindMap,
 } from './executionPanelUtils';
+import {
+  importMindMapProgressively,
+  prepareLargeMindMap,
+} from './largeMindMap';
 
 const HotBox = window.HotBox;
 
@@ -116,9 +120,10 @@ class KityminderEditor extends Component {
     return this.minder.exportJson();
   };
   setEditerData = data => {
-    this.minder.importJson(normalizeRightMindMap(data));
-    this.minder.layout(100);
-    this.minder.fire('contentchange');
+    return importMindMapProgressively(
+      this.minder,
+      normalizeRightMindMap(data),
+    ).then(() => this.minder.fire('contentchange'));
   };
   // 键盘事件的监听
   initKeyBoardEvent = () => {
@@ -128,8 +133,9 @@ class KityminderEditor extends Component {
   };
   initOnEvent = minder => {
     minder.on('import', () => {
-      this.setState({ loading: false });
+      if (!minder._progressiveImporting) this.setState({ loading: false });
     });
+    minder.on('progressiveimportdone', () => this.setState({ loading: false }));
     const { readOnly } = this.props;
     // 视图选中节点变更事件
     minder.on('selectionchange', () => {
@@ -661,7 +667,7 @@ class KityminderEditor extends Component {
     this.ws.sendMessage('lock', { message: checked ? 'lock' : 'unlock' });
   };
 
-  handleWsData = data => {
+  handleWsData = async data => {
     // if (data === 'pong pong pong') {
     //   this.heartCheck.reset().start(this.ws);
     //   return;
@@ -751,7 +757,9 @@ class KityminderEditor extends Component {
           }
         }
       } else {
-        const dataJson = normalizeRightMindMap({ ...recv });
+        const dataJson = prepareLargeMindMap(
+          normalizeRightMindMap({ ...recv }),
+        ).data;
 
         // this.largeJsonImport(this.minder, data).then(() => {
         //   // 可以给个右下角的loading标记
@@ -761,8 +769,7 @@ class KityminderEditor extends Component {
           return;
         }
         window.minderData = undefined;
-        this.minder.importJson(dataJson);
-        this.minder.layout(100);
+        await importMindMapProgressively(this.minder, dataJson);
         window.minderData = dataJson;
 
         // 第一次打开用例，预期base与用例的base保持一直
