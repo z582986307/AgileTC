@@ -918,6 +918,7 @@ class KityminderEditor extends Component {
                   <Tooltip title={'当前在线列表'}>
                     <Button
                       type="primary"
+                      className="mindmap-online-button"
                       style={{ marginRight: 15 }}
                       onClick={() =>
                         this.setState({ popoverVisible: !popoverVisible })
@@ -1106,7 +1107,11 @@ class KityminderEditor extends Component {
         </div>
         <div className={`editor-save-actions${progressShow ? ' execution-mode' : ''}`}>
             {iscore != 2 && (
-              <Button type="primary" onClick={this.onButtonSave}>
+              <Button
+                type="primary"
+                className="mindmap-save-button"
+                onClick={this.onButtonSave}
+              >
                 保存
               </Button>
             )}

@@ -56,6 +56,10 @@
     margin-right: 10px;
     .ant-input-search {
       width: 190px;
+
+      .ant-input {
+        border-radius: 8px;
+      }
     }
   }
   .mindmap-search-count {
@@ -223,9 +227,26 @@
 }
 .agiletc-lock.ant-switch {
   background-color: #61c663;
+
+  .ant-switch-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    line-height: 1;
+
+    .anticon {
+      display: block;
+      line-height: 1;
+    }
+  }
+
   &.ant-switch-checked {
     background-color: #ff6a70;
   }
+}
+.mindmap-online-button.ant-btn-primary {
+  border-radius: 8px;
 }
 .editor-save-actions {
   position: fixed;
@@ -237,6 +258,22 @@
   &.execution-mode {
     right: 360px;
   }
+
+  .ant-btn-primary {
+    min-width: 72px;
+    border-radius: 8px;
+  }
+}
+
+.ws-warning .ant-modal-content {
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18);
+}
+
+.ws-warning .ant-btn-primary {
+  min-width: 112px;
+  border-radius: 8px;
 }
 
 .execution-result-panel,

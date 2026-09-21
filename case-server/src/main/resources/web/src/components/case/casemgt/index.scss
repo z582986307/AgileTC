@@ -53,9 +53,11 @@
     }
 }
 .case-detail-meta {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 24px;
     align-items: center;
+    width: 100%;
     min-height: 20px;
     font-size: 12px;
 }
@@ -64,6 +66,7 @@
     font-weight: 500;
 }
 .case-detail-requirement {
+    justify-self: start;
     color: #86909c;
 }
 .case-detail-content {
