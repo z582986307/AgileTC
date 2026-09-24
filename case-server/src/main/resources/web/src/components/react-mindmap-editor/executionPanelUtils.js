@@ -154,4 +154,79 @@ export const countExecutionResults = root => {
   })
   return counts
 }
+const executionKeyByValue = { 9: 'passed', 1: 'failed', 5: 'blocked', 4: 'skipped' }
+export const getExecutionResultKey = progress =>
+  executionKeyByValue[progress] || 'pending'
+export const createExecutionResultIndex = root => {
+  const counts = {
+    passed: 0,
+    failed: 0,
+    blocked: 0,
+    skipped: 0,
+    pending: 0,
+    total: 0,
+  }
+  const nodesByKey = Object.keys(counts).reduce((result, key) => {
+    if (key !== 'total') result[key] = new Set()
+    return result
+  }, {})
+  collectExecutionNodes(root).forEach(node => {
+    const key = getExecutionResultKey(node.getData('progress'))
+    counts.total += 1
+    counts[key] += 1
+    nodesByKey[key].add(node)
+  })
+  return { counts, nodesByKey }
+}
+export const updateExecutionResultIndex = (index, nodes, previous, next) => {
+  const previousKey = getExecutionResultKey(previous)
+  const nextKey = getExecutionResultKey(next)
+  if (previousKey === nextKey) return index
+  nodes.forEach(node => {
+    index.nodesByKey[previousKey].delete(node)
+    index.nodesByKey[nextKey].add(node)
+  })
+  index.counts[previousKey] -= nodes.length
+  index.counts[nextKey] += nodes.length
+  return index
+}
+
+export const getNodeDataPath = (node, field) => {
+  const segments = []
+  let current = node
+  while (current && current.parent) {
+    const parent = current.parent
+    segments.unshift('children', parent.children.indexOf(current))
+    current = parent
+  }
+  return `/root/${segments.join('/')}${segments.length ? '/' : ''}data/${field}`
+}
+
+export const buildNodeDataPatches = (nodes, field, value) =>
+  nodes.reduce((patches, node) => {
+    const previous = node.getData(field)
+    if (previous === value || (previous == null && value == null)) return patches
+    const patch = { path: getNodeDataPath(node, field) }
+    if (value == null) patch.op = 'remove'
+    else if (previous == null) {
+      patch.op = 'add'
+      patch.value = value
+    } else {
+      patch.op = 'replace'
+      patch.value = value
+      patch.fromValue = previous
+    }
+    if (patch.op === 'remove') patch.fromValue = previous
+    patches.push(patch)
+    return patches
+  }, [])
+export const invertNodeDataPatches = patches =>
+  [...patches].reverse().map(patch => {
+    if (patch.op === 'add') return { op: 'remove', path: patch.path }
+    if (patch.op === 'remove')
+      return { op: 'add', path: patch.path, value: patch.fromValue }
+    return { op: 'replace', path: patch.path, value: patch.fromValue }
+  })
+export const toWirePatches = patches =>
+  patches.map(({ fromValue, ...patch }) => patch)
 export const getNodeNote = node => (node && node.getData('note')) || ''

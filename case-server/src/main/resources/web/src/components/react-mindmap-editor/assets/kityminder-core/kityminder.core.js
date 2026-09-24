@@ -6553,7 +6553,7 @@
             var node = minder.getSelectedNode();
             node.setData('note', note);
             node.render();
-            node.getMinder().layout(300);
+            if (!node.getMinder()._largeMindMap) node.getMinder().layout(300);
           },
           queryState: function (minder) {
             return minder.getSelectedNodes().length === 1 ? 0 : -1;
@@ -6857,7 +6857,7 @@
             for (var i = 0; i < nodes.length; i++) {
               nodes[i].setData(PRIORITY_DATA, value || null).render();
             }
-            km.layout();
+            if (!km._largeMindMap) km.layout();
           },
           queryValue: function (km) {
             var nodes = km.getSelectedNodes();
@@ -7008,7 +7008,7 @@
             for (var i = 0; i < nodes.length; i++) {
               nodes[i].setData(PROGRESS_DATA, value || null).render();
             }
-            km.layout();
+            if (!km._largeMindMap) km.layout();
           },
           queryValue: function (km) {
             var nodes = km.getSelectedNodes();

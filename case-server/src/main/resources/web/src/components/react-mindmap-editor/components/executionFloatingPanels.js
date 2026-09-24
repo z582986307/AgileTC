@@ -7,9 +7,10 @@ import {
   EXECUTION_MARK_OPTIONS,
   RESULT_OPTIONS,
   canMarkExecutionResult,
-  collectExecutionNodes,
   collectSelectedExecutionNodes,
-  countExecutionResults,
+  createExecutionResultIndex,
+  getExecutionResultKey,
+  updateExecutionResultIndex,
   expandAllExecutionNodes,
   focusFilteredExecutionNodes,
   getExecutionProgress,
@@ -17,7 +18,6 @@ import {
   getExecutionOptionClassName,
   getExecutionMarkGridStyle,
   getNodeNote,
-  matchesExecutionFilter,
   PANEL_TOGGLE_ICONS,
 } from '../executionPanelUtils'
 
@@ -39,7 +39,20 @@ class ExecutionFloatingPanels extends Component {
     showImage: false,
     showLink: false,
     note: getNodeNote(this.props.selectedNode),
+    executionIndex: createExecutionResultIndex(this.props.minder.getRoot()),
   }
+  componentDidMount() {
+    this.props.minder.on('import', this.rebuildExecutionIndex)
+    this.props.minder.on('progressiveimportdone', this.rebuildExecutionIndex)
+  }
+  componentWillUnmount() {
+    this.props.minder.off('import', this.rebuildExecutionIndex)
+    this.props.minder.off('progressiveimportdone', this.rebuildExecutionIndex)
+  }
+  rebuildExecutionIndex = () =>
+    this.setState({
+      executionIndex: createExecutionResultIndex(this.props.minder.getRoot()),
+    })
   componentDidUpdate(prevProps) {
     if (prevProps.selectedNode !== this.props.selectedNode)
       this.setState({ note: getNodeNote(this.props.selectedNode) })
@@ -49,28 +62,49 @@ class ExecutionFloatingPanels extends Component {
     const selectedNodes = [...minder.getSelectedNodes()]
     const executionNodes = collectSelectedExecutionNodes(selectedNodes)
     if (!executionNodes.length) return
-    minder.select(executionNodes, true)
-    minder.execCommand('Progress', value)
+    const changes = executionNodes.map(node => ({
+      node,
+      previous: node.getData('progress'),
+    }))
+    const apply = () => {
+      minder.select(executionNodes, true)
+      minder.execCommand('Progress', value)
+    }
+    if (this.props.onExecutionChange)
+      this.props.onExecutionChange('progress', executionNodes, value, apply)
+    else apply()
+    changes.forEach(change =>
+      updateExecutionResultIndex(
+        this.state.executionIndex,
+        [change.node],
+        change.previous,
+        value,
+      ),
+    )
+    this.setState({ executionIndex: { ...this.state.executionIndex } })
     minder.select(selectedNodes, true)
     minder.fire('receiverfocus')
-    minder.fire('contentchange')
     this.props.onChange()
   }
   saveNote = () => {
-    this.props.minder.execCommand('Note', this.state.note.trim() || null)
+    const value = this.state.note.trim() || null
+    const node = this.props.minder.getSelectedNode()
+    const apply = () => this.props.minder.execCommand('Note', value)
+    if (this.props.onExecutionChange)
+      this.props.onExecutionChange('note', [node], value, apply)
+    else apply()
     this.props.onChange()
     message.success('备注已保存')
   }
   filter = value => {
     const { minder } = this.props
     const root = minder.getRoot()
-    const nodes = collectExecutionNodes(root).filter(node =>
-      matchesExecutionFilter(node.getData('progress'), value),
-    )
+    const key = value === 'pending' ? 'pending' : getExecutionResultKey(value)
+    const nodes = [...this.state.executionIndex.nodesByKey[key]]
     focusFilteredExecutionNodes(root, nodes)
     root.renderTree()
     minder.layout(100)
-    minder.select(nodes, true)
+    minder.select([], true)
     minder.fire('receiverfocus')
   }
   showAll = () => {
@@ -83,7 +117,7 @@ class ExecutionFloatingPanels extends Component {
     minder.fire('receiverfocus')
   }
   renderFilter() {
-    const counts = countExecutionResults(this.props.minder.getRoot())
+    const counts = this.state.executionIndex.counts
     const progress = getExecutionProgress(counts)
     if (this.state.filterCollapsed) {
       return (
@@ -306,5 +340,6 @@ ExecutionFloatingPanels.propTypes = {
   planCycle: PropTypes.string,
   baseUrl: PropTypes.string,
   uploadUrl: PropTypes.string,
+  onExecutionChange: PropTypes.func,
 }
 export default ExecutionFloatingPanels

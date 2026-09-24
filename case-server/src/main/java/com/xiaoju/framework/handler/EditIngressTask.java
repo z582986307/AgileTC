@@ -47,7 +47,19 @@ public class EditIngressTask extends IngressTask {
 
             JsonNode roomContentNew;
 
-            if (serverCaseCurrentVersion > data.getCaseVersion()) { // 服务端版本大于前端
+            boolean patchOnly = data.getCaseContent() == null || data.getCaseContent().isEmpty();
+            if (patchOnly) {
+                if (serverCaseCurrentVersion != data.getCaseVersion()) {
+                    LOGGER.warn("patch-only edit version conflict. server: " + serverCaseCurrentVersion + ", client: " + data.getCaseVersion());
+                    executorEgressService.submit(new AckEgressTask("warning", PushMessage.builder().message("编辑版本冲突，请刷新重试.").build(), client));
+                    return;
+                }
+                roomContentNew = JsonPatch.apply(patchNew, roomContent);
+                ArrayNode patchAck = FACTORY.arrayNode();
+                patchAck.add(basePatch);
+                executorEgressService.submit(new AckEgressTask("edit_ack_event", PushMessage.builder().message(patchAck.toString()).build(), client));
+                executorEgressService.submit(new NotifyExcludeEgressTask("edit_notify_event", PushMessage.builder().message(patchNew.toString()).build(), client, broadcastOperations));
+            } else if (serverCaseCurrentVersion > data.getCaseVersion()) { // 服务端版本大于前端
                 LOGGER.warn("version of case in memory is bigger than client. version is: " + roomContent.get("base").asInt() + ", client version: " + data.getCaseVersion());
                 roomContentNew = JsonPatch.apply(patchNew, roomContent);
 

@@ -200,7 +200,7 @@ export default class CaseMgt extends React.Component {
             返回
           </Button>
           <span className="case-detail-title">
-            用例详情：
+            用例名称：
             {recordDetail ? recordDetail.title : ''}
             {casedetail ? casedetail.title : ''}
           </span>
@@ -210,6 +210,15 @@ export default class CaseMgt extends React.Component {
               (casedetail && casedetail.requirementId) ||
               '未关联'}
           </span>
+          {Number(iscore) !== 2 && (
+            <Button
+              type="primary"
+              className="case-detail-save"
+              onClick={() => this.editorNode && this.editorNode.onButtonSave()}
+            >
+              保存
+            </Button>
+          )}
         </div>
         <div className="case-detail-content">
           {(recordDetail && (

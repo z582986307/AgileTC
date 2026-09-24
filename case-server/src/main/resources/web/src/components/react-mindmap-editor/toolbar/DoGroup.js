@@ -131,6 +131,19 @@ class DoGroup extends Component {
     }
     return null;
   };
+  recordDirectChange = (forwardPatches, inversePatches) => {
+    if (!forwardPatches.length) return;
+    const { undoDiffs, lastSnap } = this.state;
+    jsonDiff.applyPatch(lastSnap, forwardPatches, false, true);
+    undoDiffs.push(inversePatches);
+    doDiffs.push(forwardPatches);
+    while (undoDiffs.length > MAX_HISTORY) {
+      undoDiffs.shift();
+      doDiffs.shift();
+    }
+    this.setState({ undoDiffs, redoDiffs: [], lastSnap });
+    this.getAndResetPatch();
+  };
   hasUndo = () => {
     const { undoDiffs } = this.state;
     return !!undoDiffs.length;

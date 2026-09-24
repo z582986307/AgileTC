@@ -36,7 +36,7 @@
 }
 .case-detail-heading {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     align-items: center;
     min-height: 32px;
     padding: 0 12px;
@@ -65,13 +65,20 @@
     text-overflow: ellipsis;
 }
 .case-detail-requirement {
-    justify-self: end;
+    justify-self: center;
     max-width: 100%;
     overflow: hidden;
     color: #86909c;
     font-size: 12px;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+.case-detail-save.ant-btn-primary {
+    justify-self: end;
+    min-width: 72px;
+    height: 32px;
+    border-radius: 10px;
+    box-shadow: none;
 }
 .case-detail-content {
     padding: 0 12px 12px;

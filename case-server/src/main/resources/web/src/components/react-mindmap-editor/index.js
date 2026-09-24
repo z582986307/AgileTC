@@ -39,6 +39,9 @@ import {
   getLockStatusLabel,
   expandAllExecutionNodes,
   normalizeRightMindMap,
+  buildNodeDataPatches,
+  invertNodeDataPatches,
+  toWirePatches,
 } from './executionPanelUtils';
 import {
   importMindMapProgressively,
@@ -414,6 +417,11 @@ class KityminderEditor extends Component {
     }
   };
   sendPatch = e => {
+    if (this.skipNextContentChange) {
+      this.skipNextContentChange = false;
+      e.minder._status = 'normal';
+      return;
+    }
     if (this.groupNode && window.minderData) {
       const change = this.groupNode.changed();
       if (!change) return;
@@ -666,6 +674,24 @@ class KityminderEditor extends Component {
     }
     this.ws.sendMessage('lock', { message: checked ? 'lock' : 'unlock' });
   };
+  handleExecutionChange = (field, nodes, value, apply) => {
+    const patches = buildNodeDataPatches(nodes.filter(Boolean), field, value);
+    if (!patches.length) return;
+    const inversePatches = invertNodeDataPatches(patches);
+    this.skipNextContentChange = true;
+    apply();
+    if (this.groupNode) {
+      this.groupNode.recordDirectChange(patches, inversePatches);
+    }
+    const currentBase = this.minder.getBase();
+    this.ws.sendMessage('edit', {
+      caseContent: '',
+      patch: JSON.stringify([toWirePatches(patches)]),
+      caseVersion: currentBase,
+    });
+    this.base = currentBase;
+    this.expectedBase = currentBase + 1;
+  };
 
   handleWsData = async data => {
     // if (data === 'pong pong pong') {
@@ -825,7 +851,6 @@ class KityminderEditor extends Component {
       wsUrl = '',
       wsParam,
       callback,
-      iscore,
       type,
       planCycle,
     } = this.props;
@@ -1071,6 +1096,7 @@ class KityminderEditor extends Component {
               planCycle={planCycle}
               baseUrl={this.props.baseUrl}
               uploadUrl={this.props.uploadUrl}
+              onExecutionChange={this.handleExecutionChange}
               onChange={() => this.forceUpdate()}
             />
           )}
@@ -1105,17 +1131,6 @@ class KityminderEditor extends Component {
             </div>
           )}
         </div>
-        <div className={`editor-save-actions${progressShow ? ' execution-mode' : ''}`}>
-            {iscore != 2 && (
-              <Button
-                type="primary"
-                className="mindmap-save-button"
-                onClick={this.onButtonSave}
-              >
-                保存
-              </Button>
-            )}
-          </div>
       </ConfigProvider>
     );
   }

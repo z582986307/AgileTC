@@ -95,6 +95,7 @@ const scheduleIdle = callback => {
 
 export const importMindMapProgressively = (minder, data, batchSize = 240) => {
   const prepared = prepareLargeMindMap(data);
+  minder._largeMindMap = prepared.isLarge;
   if (!prepared.isLarge) {
     minder.importJson(prepared.data);
     return Promise.resolve(prepared);
