@@ -35,6 +35,11 @@
   border-radius: var(--control-radius, 10px);
 }
 
+.dropStyle .ant-dropdown-menu {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
 // 组合控件只统一外轮廓圆角，内部相接边保持连续。
 .ant-btn-group > .ant-btn:not(:first-child):not(:last-child) {
   border-radius: 0;

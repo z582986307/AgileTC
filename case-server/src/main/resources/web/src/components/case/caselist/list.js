@@ -228,6 +228,7 @@ class Lists extends React.Component {
                   <Menu>
                     <Menu.Item>
                       <a
+                        className="delete-action"
                         onClick={() => {
                           Modal.confirm({
                             title: '确认删除用例集吗',
@@ -511,7 +512,7 @@ class Lists extends React.Component {
                       okText: '删除',
                     });
                   }}
-                  className="icon-bg border-a-redius-right margin-3-right"
+                  className="icon-bg delete-action border-a-redius-right margin-3-right"
                 >
                   <Icon type="delete" />
                 </a>
@@ -692,11 +693,12 @@ class Lists extends React.Component {
               if (!props.expanded) {
                 return (
                   <div
+                    className="case-list-expand-hit-area"
                     role="button"
                     tabIndex="0"
-                    className="ant-table-row-expand-icon ant-table-row-collapsed"
                     aria-label="展开行"
-                    onClick={() => {
+                    onClick={event => {
+                      event.stopPropagation();
                       let extendLoading = this.state.extendLoading.set(
                         props.record.id,
                         true,
@@ -705,19 +707,30 @@ class Lists extends React.Component {
                       this.setState({ extendLoading });
                       this.seeDetail(props);
                     }}
-                  ></div>
+                  >
+                    <span
+                      className="ant-table-row-expand-icon ant-table-row-collapsed"
+                      aria-hidden="true"
+                    />
+                  </div>
                 );
               } else {
                 return (
                   <div
+                    className="case-list-expand-hit-area"
                     role="button"
                     tabIndex="0"
-                    className="ant-table-row-expand-icon ant-table-row-expanded"
                     aria-label="关闭行"
-                    onClick={() => {
+                    onClick={event => {
+                      event.stopPropagation();
                       this.seeDetail(props);
                     }}
-                  ></div>
+                  >
+                    <span
+                      className="ant-table-row-expand-icon ant-table-row-expanded"
+                      aria-hidden="true"
+                    />
+                  </div>
                 );
               }
             } else {
