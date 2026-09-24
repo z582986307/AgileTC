@@ -90,7 +90,7 @@ assert(editor.includes('className="mindmap-online-button"'), '在线人数按钮
 assert(styles.includes('.mindmap-header-search') && styles.includes('border-radius: 8px;'), '用例搜索框应使用 8px 圆角')
 assert(styles.includes('.mindmap-online-button.ant-btn-primary'), '在线人数按钮应提供独立的圆角样式')
 assert(caseMgtStyles.includes('.case-detail-save.ant-btn-primary') && caseMgtStyles.includes('border-radius: 10px;'), '顶部保存按钮应提供统一的圆角样式')
-assert(styles.includes('.agiletc-lock.ant-switch') && styles.includes('.ant-switch-inner'), '锁定和解锁图标应在开关内部居中')
+assert(styles.includes('.testcasemanage-lock.ant-switch') && styles.includes('.ant-switch-inner'), '锁定和解锁图标应在开关内部居中')
 assert(styles.includes('.ws-warning .ant-modal-content'), 'Web 通信断开弹窗应使用独立的 Chrome 风格圆角')
 assert(styles.includes('.ws-warning .ant-btn-primary'), 'Web 通信断开弹窗按钮应使用更大的圆角')
 assert(panel.includes('createExecutionResultIndex'), '执行悬浮窗应建立结果索引，避免每次选中都遍历整棵树')

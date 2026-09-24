@@ -5,7 +5,7 @@ import moment from 'moment';
 moment.locale('zh-cn');
 import request from '@/utils/axios';
 import Headers from '../../layouts/headers';
-import AgileTCEditor from '../../components/react-mindmap-editor';
+import TestCaseManageEditor from '../../components/react-mindmap-editor';
 import './index.scss';
 
 class SeeResult extends React.Component {
@@ -62,7 +62,7 @@ class SeeResult extends React.Component {
                 <Tag color="#d6f0ff">内容已变更</Tag>
               </Card>
             </div>
-            <AgileTCEditor
+            <TestCaseManageEditor
               ref={editorNode => (this.editorNode = editorNode)}
               tags={['前置条件', '执行步骤', '预期结果']}
               progressShow={true}

@@ -316,10 +316,10 @@ class KityminderEditor extends Component {
     let e = event || window.event || this.arguments.callee.caller.arguments[0]; //事件
     const ctrlKey = window.event.metaKey || window.event.ctrlKey;
     const hasModal =
-      document.getElementsByClassName('agiletc-modal').length > 0;
+      document.getElementsByClassName('testcasemanage-modal').length > 0;
     const { showEdit, selectedNode, inputContent } = this.state;
     const hasDrawer =
-      document.getElementsByClassName('agiletc-note-drawer').length > 0;
+      document.getElementsByClassName('testcasemanage-note-drawer').length > 0;
     const isRefresh = ctrlKey && window.event.keyCode === 82;
     // comm + s 保存
     if (ctrlKey && window.event.keyCode === 83 && this.props.onSave) {
@@ -510,7 +510,7 @@ class KityminderEditor extends Component {
     if (this.modal === undefined) {
       this.modal = Modal.warning({
         title: 'Websocket通信已断开，请手动刷新页面。',
-        className: 'agiletc-modal ws-warning',
+        className: 'testcasemanage-modal ws-warning',
         getContainer: () =>
           document.getElementsByClassName('kityminder-core-container')[0],
         okText: '知道了，立即刷新',
@@ -965,7 +965,7 @@ class KityminderEditor extends Component {
                       unCheckedChildren={<Icon type="unlock" />}
                       checked={isLock || locked}
                       onChange={this.handleLockToggle}
-                      className="agiletc-lock"
+                      className="testcasemanage-lock"
                     />
                   )}
                 </Tooltip>,
@@ -1027,7 +1027,7 @@ class KityminderEditor extends Component {
               height: `calc(100% - 45px - ${showToolBar ? '80px' : '0px'})`,
             }}
           >
-            {loading && <Spin className="agiletc-loader" />}
+            {loading && <Spin className="testcasemanage-loader" />}
           </div>
           {this.state.contextMenu && (
             <div

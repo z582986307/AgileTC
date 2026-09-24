@@ -17,8 +17,8 @@ const ClipboardRuntime = (minder, readOnly) => {
     return kmencode(Data.getRegisterProtocol('json').encode(_nodes));
   };
   const isActive = (e) => {
-    const hasModal = document.getElementsByClassName('agiletc-modal').length > 0;
-    const hasDrawer = document.getElementsByClassName('agiletc-note-drawer').length > 0;
+    const hasModal = document.getElementsByClassName('testcasemanage-modal').length > 0;
+    const hasDrawer = document.getElementsByClassName('testcasemanage-note-drawer').length > 0;
     const hasNotePreviewer = document.getElementsByClassName('note-previewer').length > 0;
     return (
       !hasModal &&

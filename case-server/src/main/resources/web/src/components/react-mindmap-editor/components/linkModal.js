@@ -19,7 +19,7 @@ const LinkModal = (props) => {
   return (
     <Modal
       title="链接"
-      className="agiletc-modal"
+      className="testcasemanage-modal"
       visible={props.visible}
       onOk={onOk}
       onCancel={props.onCancel}

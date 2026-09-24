@@ -1,6 +1,6 @@
 English | [简体中文](./README_zh-CN.md)
 
-## AgileTC
+## TestCaseManage
 
 ![image](https://dpubstatic.udache.com/static/dpubimg/RQnYIFAwEd/logo.png)
 
@@ -8,7 +8,7 @@ English | [简体中文](./README_zh-CN.md)
 
 ### Introduction
 
-AgileTC - A Test case management platform with ability of multi real-time collaboration base on mind map.
+TestCaseManage - A test case management platform with multi-user real-time collaboration based on mind maps.
 
 ### Project Description:
 
@@ -18,17 +18,17 @@ With the rapid business iteration, the efficiency requirements for each link of 
 
 The industry's more reliable use case management platforms, such as test-link, QC, Zen Tao, etc., all adopt traditional use case management methods, similar to excel operating experience, and the test case writing process is more cumbersome, which is similar to the mind map management method commonly used in current business It does not match, nor does it meet the demands of current business rapid iteration. Therefore, we need a complete test case management system to meet daily test requirements.
 
-AgileTC is an agile online test case management platform that supports general capabilities such as test case collection management, use case hierarchical management, task management, schedule calculation, and multi-person implementation collaboration. It is suitable for software testing/developer use case writing, use case review, test task management and other scenarios.
+TestCaseManage is an agile online test case management platform that supports test case collection management, hierarchical case management, task management, schedule calculation, and multi-person collaboration.
 
 ### Function
 
 #### Test case set management
 
-AgileTC can associate use case sets with requirements, supports the import/export of xmind/xmind zen, and has rich search capabilities, such as searching based on use case set name, creator, management requirements, and creation time
+TestCaseManage can associate use case sets with requirements, supports xmind/xmind zen import/export, and provides rich search capabilities.
 
 #### Use case edit
 
-AgileTC supports real-time collaborative editing of use case sets by multiple people. One person's modification will be synchronized to other clients that open the same use case in real time, realizing more efficient test set writing and test execution collaboration. Support use case priority and custom labeling. The server and client have added a regular inspection and detection mechanism to ensure the stability of the connection. Support the automatic saving of the use case set in the scenario of abnormal connection (such as abnormal browser exit or system failure, etc.).
+TestCaseManage supports real-time collaborative editing of use case sets. Changes are synchronized to other clients, with priorities, custom labels, connection health checks, and automatic saving.
 
 #### Test task management
 

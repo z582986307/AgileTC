@@ -48,7 +48,7 @@ public class CaseCreateReq implements ParamValidate {
 
     /**
      * 必填 默认给0
-     * 其实这里的channel意思就是渠道，用户在agileTc页面创建的就是1
+     * 其实这里的channel意思就是渠道，用户在TestCaseManage页面创建的就是1
      * 如果是其他自定义系统过来的，可以自定义
      */
     private Integer channel;

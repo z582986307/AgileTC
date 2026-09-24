@@ -1,4 +1,4 @@
-## agiletc使用说明
+## TestCaseManage使用说明
 
 ### 登陆注册
 
@@ -50,7 +50,7 @@
 
 <img src="https://dpubstatic.udache.com/static/dpubimg/67487697-fc7e-4b50-9268-bdfd90b74c1f.png" style="zoom:50%;" />
 
-第六步：可通过打优先级的方式标记测试用例，选中标记的用例，添加所需要的优先级，比如对AgileTC这个测试用例进行打优先级，点击测试用例，然后选择相对应的【优先级】P0，P1，P2，“优先级”被标记到测试用例，如果想取消标记的优先级，勾选“—”即可，会取消用例勾选的优先级，如图
+第六步：可通过打优先级的方式标记测试用例，选中标记的用例，添加所需要的优先级，比如对当前测试用例进行打优先级，点击测试用例，然后选择相对应的【优先级】P0，P1，P2，“优先级”被标记到测试用例，如果想取消标记的优先级，勾选“—”即可，会取消用例勾选的优先级，如图
 
 <img src="https://dpubstatic.udache.com/static/dpubimg/5765ac0c-0d1e-473a-a854-1c6e0c8f73bb.png" style="zoom:50%;" />
 
@@ -178,4 +178,4 @@
 
 <img src="https://dpubstatic.udache.com/static/dpubimg/b10660fc-64b2-4552-879f-f38d74f0be58.png" style="zoom:50%;" />
 
-#### 
+####

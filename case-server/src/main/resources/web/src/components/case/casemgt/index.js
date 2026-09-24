@@ -7,7 +7,7 @@ import request from '@/utils/axios';
 import getQueryString from '@/utils/getCookies';
 import moment from 'moment';
 import { getSocketUrl } from '../../react-mindmap-editor/util/socketUrl';
-import AgileTCEditor from '../../react-mindmap-editor';
+import TestCaseManageEditor from '../../react-mindmap-editor';
 
 const getCookies = getQueryString.getCookie;
 /* global staffNamePY */
@@ -246,7 +246,7 @@ export default class CaseMgt extends React.Component {
           )) ||
             null}
            
-          <AgileTCEditor
+          <TestCaseManageEditor
             ref={editorNode => (this.editorNode = editorNode)}
             tags={['前置条件', '执行步骤', '预期结果']}
             iscore={iscore}

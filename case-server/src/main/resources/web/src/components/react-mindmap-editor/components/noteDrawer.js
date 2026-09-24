@@ -61,7 +61,7 @@ const NoteDrawer = (props) => {
       mask={false}
       getContainer={() => minder.getPaper().container.parentNode}
       bodyStyle={{ padding: 0 }}
-      className="agiletc-note-drawer"
+      className="testcasemanage-note-drawer"
     >
       <Editor
         toolbar={{}}

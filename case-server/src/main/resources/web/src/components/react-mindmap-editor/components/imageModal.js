@@ -45,7 +45,7 @@ const ImageModal = (props) => {
   return (
     <Modal
       title="图片"
-      className="agiletc-modal"
+      className="testcasemanage-modal"
       visible={props.visible}
       onOk={onOk}
       onCancel={props.onCancel}

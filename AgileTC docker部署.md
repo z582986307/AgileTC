@@ -1,8 +1,8 @@
 ###### 关于改动的地方
 
-- 修改了Agile-TC github上 spring的配置文件,将数据库相关的配置抽取到了环境变量中.
-- 修改了数据库初始化sql文件目录位置,放到了 classpath 根目录下.并在spring的配置文件中将schema指向了初始化sql文件.
-- mysql镜像直接引用的官方的,case-server镜像是将 Agile-TC 项目打成jar包 并基于 openjdk8 打成了镜像上传到了我个人的docker-hub仓库中.(也就是说后续更新的话case-server镜像需要同步更新)
+- 修改了开源项目的 spring 配置文件，将数据库相关的配置抽取到了环境变量中。
+- 修改了数据库初始化 sql 文件目录位置，放到了 classpath 根目录下，并在 spring 配置文件中指定 schema。
+- mysql 镜像直接引用官方镜像，case-server 镜像基于 openjdk8 构建。（后续更新时需要同步更新 case-server 镜像）
 
 ###### 如何启动
 
@@ -34,7 +34,7 @@ version: '3'
 services:
   case-server:
     image: yestodayhadrain/case-server:v1.0.6
-    container_name: agileTC-caseserver
+    container_name: testcasemanage-caseserver
     env_file:
       - ./agile.env
     command: bash -c "cd /app/ && java -jar case-server-1.0-SNAPSHOT.jar"
@@ -48,7 +48,7 @@ services:
       - agile-net
   mysql:
     image: mysql:latest
-    container_name: agileTC-mysql
+    container_name: testcasemanage-mysql
     # 挂载到宿主机目录 /data/mysql/data 
     volumes:
       - /data/mysql/data:/var/lib/mysql
