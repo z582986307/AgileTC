@@ -43,7 +43,7 @@ export const buttons = [
 ];
 // 外观tab 主题list
 export const theme = {
-  'byte-blue': '浅蓝色',
+  'byte-blue': '浅蓝',
   classic: '脑图经典',
   'classic-compact': '紧凑经典',
   snow: '温柔冷光',

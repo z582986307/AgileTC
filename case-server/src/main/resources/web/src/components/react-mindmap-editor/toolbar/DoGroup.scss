@@ -10,14 +10,14 @@
   box-shadow: none;
 
   .ant-btn-link {
-    width: 32px;
-    height: 32px;
+    width: 40px;
+    height: 36px;
     padding: 0;
-    color: #64748b;
+    color: #3370ff;
     background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    border: 1px solid #c9d9ff;
+    border-radius: 8px;
+    box-shadow: 0 1px 2px rgba(51, 112, 255, 0.08);
 
     .anticon {
       font-size: 15px;
@@ -26,17 +26,18 @@
     &:hover,
     &:focus {
       color: #3370ff;
-      background: #eff6ff;
-      border-color: #bfdbfe;
-      box-shadow: 0 1px 3px rgba(51, 112, 255, 0.12);
+      color: #fff;
+      background: #3370ff;
+      border-color: #3370ff;
+      box-shadow: 0 3px 8px rgba(51, 112, 255, 0.24);
     }
 
     &[disabled],
     &[disabled]:hover,
     &[disabled]:focus {
-      color: #cbd5e1;
-      background: #f8fafc;
-      border-color: #e2e8f0;
+      color: #aebbd0;
+      background: #f5f7fa;
+      border-color: #e4eaf3;
       box-shadow: none;
     }
   }
