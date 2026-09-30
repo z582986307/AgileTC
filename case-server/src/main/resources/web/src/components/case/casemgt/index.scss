@@ -36,23 +36,49 @@
 }
 .case-detail-heading {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr));
     align-items: center;
     min-height: 32px;
     padding: 0 12px;
     margin-bottom: 2px;
 }
+.case-detail-navigation {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    min-width: 0;
+}
 .case-detail-back.ant-btn-link {
-    justify-self: start;
+    flex: 0 0 auto;
     height: 24px;
     margin: 0;
     padding: 0 8px 0 0;
     color: #3370ff;
-    transform: translateY(3px);
 
     &:hover,
     &:focus {
         color: #245bdb;
+    }
+}
+.case-detail-breadcrumb {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 12px;
+    white-space: nowrap;
+
+    .ant-breadcrumb-link,
+    .ant-breadcrumb-separator {
+        color: #86909c;
+    }
+
+    .case-list-link {
+        color: #3370ff;
+
+        &:hover,
+        &:focus {
+            color: #245bdb;
+            text-decoration: underline;
+        }
     }
 }
 .case-detail-title {

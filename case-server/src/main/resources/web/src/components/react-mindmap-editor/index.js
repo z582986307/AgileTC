@@ -55,6 +55,15 @@ const TabPane = Tabs.TabPane;
 // 鼠标右键
 const MOUSE_RB = 2;
 
+const normalizeOnlineUsers = (value, currentUser) => {
+  const users = String(value || '')
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+  if (currentUser && !users.includes(currentUser)) users.unshift(currentUser);
+  return Array.from(new Set(users));
+};
+
 marked.setOptions({
   gfm: true,
   tables: true,
@@ -83,6 +92,7 @@ class KityminderEditor extends Component {
       locked: false, // 当前session主动锁住
       popoverVisible: false,
       nowUseList: [],
+      wsConnected: false,
       contextMenu: null,
     };
     this.base = -1;
@@ -504,6 +514,7 @@ class KityminderEditor extends Component {
     }
   };
   handleWsClose = e => {
+    this.setState({ wsConnected: false, nowUseList: [] });
     // if (this.props.onClose) {
     //   this.props.onClose(this.minder.exportJson());
     // }
@@ -629,6 +640,12 @@ class KityminderEditor extends Component {
 
   handleWsOpen = () => {
     window.ws = this.ws;
+    const query = this.props.wsParam && this.props.wsParam.query;
+    const currentUser = query && query.user;
+    this.setState({
+      wsConnected: true,
+      nowUseList: normalizeOnlineUsers('', currentUser),
+    });
     // this.heartCheck.reset().start(this.ws);
     console.log("handle ws open", window.ws);
   };
@@ -664,7 +681,11 @@ class KityminderEditor extends Component {
 
   handleWsUserStat = (data) => {
     console.log( 'user info , ', data);
-    this.setState({ nowUseList: data?.split(',') || [] });
+    const query = this.props.wsParam && this.props.wsParam.query;
+    const currentUser = query && query.user;
+    this.setState({
+      nowUseList: normalizeOnlineUsers(data, currentUser),
+    });
   }
 
   handleLockToggle = checked => {
@@ -841,6 +862,7 @@ class KityminderEditor extends Component {
       // redoCnt,
       popoverVisible,
       nowUseList,
+      wsConnected,
       selectedNode,
     } = this.state;
     const {
@@ -857,7 +879,7 @@ class KityminderEditor extends Component {
     const childProps = {
       ...this.props,
       minder,
-      isLock
+      isLock,
     };
 
     const tabContentClass = `toolbar has-right-border`;
@@ -949,7 +971,7 @@ class KityminderEditor extends Component {
                         this.setState({ popoverVisible: !popoverVisible })
                       }
                     >
-                      {nowUseList ? nowUseList.length : 1}人在线
+                      {wsConnected ? Math.max(nowUseList.length, 1) : 0}人在线
                     </Button>
                   </Tooltip>
                 </Popover>,
@@ -1145,6 +1167,7 @@ KityminderEditor.propTypes = {
   editorStyle: PropTypes.any, // 容器样式
   uploadUrl: PropTypes.any, // 上传请求地址（相对路径）
   wsUrl: PropTypes.any, // websocket请求地址（绝对路径）
+  wsParam: PropTypes.any, // websocket 房间与当前用户参数
   baseUrl: PropTypes.any, // 请求前缀
   onClose: PropTypes.any, // wesocket通信关闭时触发的回调
   onSave: PropTypes.any, // 快捷键保存时触发的事件

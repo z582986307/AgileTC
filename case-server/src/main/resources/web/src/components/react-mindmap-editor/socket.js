@@ -13,7 +13,9 @@ class Socket extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = { ws : io(this.props.url, props.wsParam) };
+        this.state = {
+            ws: io(this.props.url, { ...props.wsParam, autoConnect: false }),
+        };
         this.sendMessage = this.sendMessage.bind(this);
         this.setupSocket = this.setupSocket.bind(this);
         this.leaveListener = this.leaveListener.bind(this);
@@ -189,6 +191,7 @@ class Socket extends React.Component {
     componentDidMount() {
         console.log(' -- componentDidMount -- ')
         this.setupSocket();
+        this.state.ws.connect();
         window.addEventListener('beforeunload', this.leaveListener);
     }
 

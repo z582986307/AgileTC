@@ -1,13 +1,14 @@
 /* eslint-disable */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Row, Button, Col, message, Tooltip } from 'antd';
+import { Breadcrumb, Row, Button, Col, message, Tooltip } from 'antd';
 import './index.scss';
 import request from '@/utils/axios';
 import getQueryString from '@/utils/getCookies';
 import moment from 'moment';
 import { getSocketUrl } from '../../react-mindmap-editor/util/socketUrl';
 import TestCaseManageEditor from '../../react-mindmap-editor';
+import Link from 'umi/link';
 
 const getCookies = getQueryString.getCookie;
 /* global staffNamePY */
@@ -191,14 +192,26 @@ export default class CaseMgt extends React.Component {
     return (
       <div style={{ position: 'relative', minHeight: '80vh' }}>
         <div className="case-detail-heading">
-          <Button
-            type="link"
-            icon="arrow-left"
-            className="case-detail-back"
-            onClick={() => this.props.history.push('/case/caseList/1')}
-          >
-            返回
-          </Button>
+          <div className="case-detail-navigation">
+            <Button
+              type="link"
+              icon="arrow-left"
+              className="case-detail-back"
+              onClick={() => this.props.history.push('/case/caseList/1')}
+            >
+              返回
+            </Button>
+            <Breadcrumb className="case-detail-breadcrumb">
+              <Breadcrumb.Item>
+                <Link className="case-list-link" to="/case/caseList/1">
+                  {casedetail ? '用例列表' : '任务列表'}
+                </Link>
+              </Breadcrumb.Item>
+              <Breadcrumb.Item>
+                {casedetail ? '用例详情' : '任务详情'}
+              </Breadcrumb.Item>
+            </Breadcrumb>
+          </div>
           <span className="case-detail-title">
             用例名称：
             {recordDetail ? recordDetail.title : ''}

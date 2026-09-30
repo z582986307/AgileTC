@@ -29,7 +29,7 @@ assert(styles.includes('.ant-btn:not(.ant-btn-circle)'), '普通按钮应继承�
 assert(styles.includes('.ant-input'), '输入框应继承统一圆角')
 assert(styles.includes('.ant-select-selection'), '选择框应继承统一圆角')
 assert(styles.includes('.ant-modal-content'), '弹窗应继承统一圆角')
-assert(editorStyles.includes('border-radius: 8px;'), '撤销和重做应使用轻量圆角按钮样式')
+assert(editorStyles.includes('border-radius: 10px;'), '撤销和重做应使用轻量圆角分段工具条样式')
 assert(editor.includes("className=\"mindmap-outlook-toggle\""), '外观入口应保留统一样式类')
 assert(themes.includes("'byte-blue': '浅蓝'"), '当前浅蓝主题应以中文名称展示')
 
