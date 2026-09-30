@@ -1,4 +1,4 @@
-export const LARGE_MIND_MAP_NODE_THRESHOLD = 1500;
+export const LARGE_MIND_MAP_NODE_THRESHOLD = 500;
 
 export const countVisibleMindMapNodes = data => {
   if (!data || !data.root) return 0;
@@ -111,10 +111,13 @@ export const importMindMapProgressively = (minder, data, batchSize = 240) => {
     const runBatch = deadline => {
       try {
         let processed = 0;
+        const startedAt = Date.now();
         while (
           cursor < plan.entries.length &&
           processed < batchSize &&
-          (processed < 24 || deadline.didTimeout || deadline.timeRemaining() > 1)
+          (processed === 0 ||
+            (Date.now() - startedAt < 12 &&
+              (deadline.didTimeout || deadline.timeRemaining() > 1)))
         ) {
           const entry = plan.entries[cursor];
           const parent =
