@@ -4,7 +4,7 @@ const {
   createProgressiveMindMapPlan,
   prepareLargeMindMap,
 } = require('../src/components/react-mindmap-editor/largeMindMap');
-const { runInSlices } = require('../src/components/react-mindmap-editor/progressiveRender');
+const { runInSlices, createSpatialRenderGroups } = require('../src/components/react-mindmap-editor/progressiveRender');
 
 const createTree = depth => {
   const node = { data: { text: `level-${depth}` }, children: [] };
@@ -13,6 +13,21 @@ const createTree = depth => {
 };
 
 describe('大型脑图数据与调度（真实渲染另由 Chrome 脚本验证）', () => {
+  test('不把相距很远的节点放进同一绘制组，且不改变树的遍历顺序', async () => {
+    const nodes = Array.from({ length: 256 }, (_, i) => ({
+      id: i,
+      getLayoutBox: () => ({ x: 0, y: (i % 2) * 10000 + Math.floor(i / 2) }),
+    }));
+    expect(typeof createSpatialRenderGroups).toBe('function');
+    const groups = await createSpatialRenderGroups(nodes, { cancelled: false });
+    expect(groups).toHaveLength(2);
+    groups.forEach(group => {
+      const ys = group.map(node => node.getLayoutBox().y);
+      expect(Math.max(...ys) - Math.min(...ys)).toBe(127);
+    });
+    expect(new Set([].concat(...groups)).size).toBe(256);
+    expect(nodes.map(node => node.id)).toEqual(Array.from({ length: 256 }, (_, i) => i));
+  });
   test('首次导入默认展开，保留已保存的折叠及执行结果', () => {
     const root = createTree(4);
     root.children[0].data.progress = 1;

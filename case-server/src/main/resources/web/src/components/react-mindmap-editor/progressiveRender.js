@@ -26,6 +26,22 @@ export const runInSlices = async (items, visit, task, maxBatch = 64) => {
   }
 };
 
+export const createSpatialRenderGroups = async (nodes, task) => {
+  const positions = [];
+  await runInSlices(nodes, node => {
+    const box = node.getLayoutBox();
+    positions.push({ node, x: box.x, y: box.y });
+  }, task);
+  if (task.cancelled) return [];
+  // 只排序绘制引用，不修改树、导航或用例顺序；避免不规则树中远处节点被整组带入首屏。
+  positions.sort((a, b) => a.y - b.y || a.x - b.x);
+  const groups = [];
+  for (let i = 0; i < positions.length; i += 128) {
+    groups.push(positions.slice(i, i + 128).map(position => position.node));
+  }
+  return groups;
+};
+
 export const renderMindMapProgressively = async (minder, nodes, task) => {
   const visible = [];
   const visibleSet = new Set();
@@ -78,8 +94,8 @@ export const renderMindMapProgressively = async (minder, nodes, task) => {
   }, task, 256);
   if (task.cancelled) return;
   // 已有最终坐标后才分批挂载，避免所有节点重叠在原点，也避免一次显示整张 SVG。
-  const groups = [];
-  for (let i = 0; i < visible.length; i += 128) groups.push(visible.slice(i, i + 128));
+  const groups = await createSpatialRenderGroups(visible, task);
+  if (task.cancelled) return;
   minder._progressiveGroups = [];
   minder._paintGroups = createPaintGroups(minder);
   await runInSlices(groups, batch => minder._paintGroups.mount(batch), task, 1);
