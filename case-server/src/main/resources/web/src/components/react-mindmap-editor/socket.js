@@ -4,7 +4,8 @@ import io from './assets/socketio/socket.io.js';
 import { notification } from 'antd';
 import {
     importMindMapProgressively,
-    prepareLargeMindMap,
+    cancelMindMapImport,
+    isMindMapReady,
 } from './largeMindMap';
 import { normalizeRightMindMap } from './executionPanelUtils';
 // import { AsyncStorage } from 'react-native-community/async-storage';
@@ -36,7 +37,7 @@ class Socket extends React.Component {
         websocket.on('disconnect', () => {
             if (typeof this.props.onClose === 'function') this.props.onClose();
             console.log('disconnect happened.')
-            if (!this.isExecutionRecord()) {
+            if (!this.isExecutionRecord() && isMindMapReady(this.props.wsMinder)) {
                 localStorage.setItem(JSON.stringify(this.props.wsParam), JSON.stringify(this.props.wsMinder.exportJson()));
             }
         });
@@ -47,52 +48,29 @@ class Socket extends React.Component {
         });
 
         websocket.on('open_event', async evt => {
-            const recv = normalizeRightMindMap(JSON.parse(evt.message || '{}'));
-            const dataJson = prepareLargeMindMap(recv).data;
-
-            if (this.isExecutionRecord()) {
-                localStorage.removeItem(JSON.stringify(this.props.wsParam));
-                window.minderData = undefined;
-                await importMindMapProgressively(this.props.wsMinder, dataJson);
-                window.minderData = dataJson;
-                this.expectedBase = this.props.wsMinder.getBase();
-                return;
-            }
-            
             try {
-                const cacheContent = prepareLargeMindMap(
-                    JSON.parse(localStorage.getItem(JSON.stringify(this.props.wsParam)))
-                ).data;
-                if (cacheContent == undefined) {
-                    throw 'cache is empty'; 
+                let data = normalizeRightMindMap(JSON.parse(evt.message || '{}'));
+                const cacheKey = JSON.stringify(this.props.wsParam);
+                if (!this.isExecutionRecord()) {
+                    try {
+                        const cached = JSON.parse(localStorage.getItem(cacheKey));
+                        if (cached && cached.root && !(data.base > cached.base)) data = normalizeRightMindMap(cached);
+                    } catch (error) { /* 缓存损坏时使用服务端内容 */ }
                 }
-                if (dataJson.base > cacheContent.base) { // 服务端版本高
-                    throw 'choose server'; 
-                } else { // 客户端版本高 或者 相同
-                    // do nothing
-                    // websocket.sendMessage('edit', { caseContent: JSON.stringify(cacheContent), patch: null, caseVersion: caseContent.base });
-                } 
                 window.minderData = undefined;
-                await importMindMapProgressively(this.props.wsMinder, cacheContent);
-                window.minderData = cacheContent;
+                this.pendingImport = importMindMapProgressively(this.props.wsMinder, data);
+                const result = await this.pendingImport;
+                if (result.cancelled || this.unmounted) return;
+                window.minderData = data;
                 this.expectedBase = this.props.wsMinder.getBase();
-                // todo 测试版本，暂不清除
-                localStorage.removeItem(JSON.stringify(this.props.wsParam));
-            } catch (e) {
-                if (evt.message === JSON.stringify(this.props.wsMinder.exportJson())) {
-                  return;
-                } 
-
-                window.minderData = undefined;
-                await importMindMapProgressively(this.props.wsMinder, dataJson);
-                window.minderData = dataJson;
-                this.expectedBase = this.props.wsMinder.getBase();
-
-                // this.props.onMessage(evt.data);
+                localStorage.removeItem(cacheKey);
+            } catch (error) {
+                if (!this.unmounted) notification.error({ message: '用例加载失败，请重新进入当前页面' });
             }
         });
 
-        websocket.on('edit_ack_event', evt => {
+        websocket.on('edit_ack_event', async evt => {
+            if (!(await this.waitForImport())) return;
             const recv = JSON.parse(evt.message || '{}');
             // 如果json解析没有root节点
             this.props.wsMinder.setStatus('readonly');
@@ -107,7 +85,8 @@ class Socket extends React.Component {
             // this.props.wsMinder._status='nomal';
         });
 
-        websocket.on('edit_notify_event', evt => {
+        websocket.on('edit_notify_event', async evt => {
+            if (!(await this.waitForImport())) return;
             const recv = JSON.parse(evt.message || '{}');
             // 如果json解析没有root节点
             try {
@@ -119,7 +98,8 @@ class Socket extends React.Component {
             }
             
         });
-        websocket.on('undo', evt => {
+        websocket.on('undo', async evt => {
+            if (!(await this.waitForImport())) return;
             console.log('undo info', evt.message);
             try {
                 if (typeof this.props.handleUndoAck === 'function') {
@@ -129,7 +109,8 @@ class Socket extends React.Component {
                 alert('客户端接受通知消息异常，请刷新重试');
             }
         })
-        websocket.on('redo', evt => {
+        websocket.on('redo', async evt => {
+            if (!(await this.waitForImport())) return;
             console.log('redo info', evt.message);
             try {
                 if (typeof this.props.handleRedoAck === 'function') {
@@ -154,6 +135,17 @@ class Socket extends React.Component {
             notification.error({ message: 'server process patch failed, please refresh'});
         });
     }
+
+    waitForImport = async () => {
+        const pending = this.pendingImport;
+        if (!pending) return !this.unmounted;
+        try {
+            const result = await pending;
+            return !this.unmounted && !result.cancelled && pending === this.pendingImport;
+        } catch (error) {
+            return false;
+        }
+    };
 
     travere = (arrPatches) => {
         var patches = [];
@@ -183,7 +175,7 @@ class Socket extends React.Component {
     leaveListener(e) {
         e.preventDefault();
         e.returnValue = '内容将被存储到缓存，下次打开相同用例优先从缓存获取！';
-        if (!this.isExecutionRecord() && this.props.wsMinder.getBase() > 16) {
+        if (!this.isExecutionRecord() && isMindMapReady(this.props.wsMinder) && this.props.wsMinder.getBase() > 16) {
             localStorage.setItem(JSON.stringify(this.props.wsParam), JSON.stringify(this.props.wsMinder.exportJson()));
         }
     }
@@ -196,6 +188,8 @@ class Socket extends React.Component {
     }
 
     componentWillUnmount() {
+        this.unmounted = true;
+        cancelMindMapImport(this.props.wsMinder);
         window.removeEventListener('beforeunload', this.leaveListener);
 
         this.state.ws.disconnect();

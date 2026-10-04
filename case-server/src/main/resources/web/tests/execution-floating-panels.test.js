@@ -44,9 +44,11 @@ test('右键标记结果与悬浮窗共用相同文案顺序和语义样式', ()
     ['阻塞', 'warning'],
     ['跳过', 'skipped'],
   ])
-  expect(renderExecutionContextLabel({ label: '失败', tone: 'danger' })).toBe(
-    '<span class="execution-context-label danger">失败</span>',
-  )
+  const label = document.createElement('div')
+  label.innerHTML = renderExecutionContextLabel({ label: '失败', tone: 'danger' })
+  expect(label.textContent).toBe('失败')
+  expect(label.querySelector('.execution-context-label.danger')).not.toBeNull()
+  expect(label.querySelector('svg.execution-status-icon.danger')).not.toBeNull()
 })
 test('锁定开关使用状态文案', () => {
   expect(getLockStatusLabel(true)).toBe('已锁定')

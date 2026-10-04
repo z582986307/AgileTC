@@ -1,4 +1,15 @@
+import { runInSlices, renderMindMapProgressively } from './progressiveRender';
+
 export const LARGE_MIND_MAP_NODE_THRESHOLD = 500;
+
+export const isMindMapReady = minder => !minder._mindMapImport ||
+  (minder._mindMapImport.completed && !minder._mindMapImport.cancelled);
+
+export const cancelMindMapImport = minder => {
+  if (minder && minder._mindMapImport && !minder._mindMapImport.completed) {
+    minder._mindMapImport.cancelled = true;
+  }
+};
 
 export const countVisibleMindMapNodes = data => {
   if (!data || !data.root) return 0;
@@ -39,7 +50,7 @@ export const prepareLargeMindMap = (
     const node = pending.pop();
     nodes.push(node);
     if (node.children && node.children.length) {
-      pending.push(...node.children);
+      node.children.forEach(child => pending.push(child));
     }
   }
 
@@ -83,66 +94,50 @@ export const createProgressiveMindMapPlan = data => {
   };
 };
 
-const scheduleIdle = callback => {
-  if (typeof window !== 'undefined' && window.requestIdleCallback) {
-    return window.requestIdleCallback(callback, { timeout: 50 });
+export const importMindMapProgressively = async (minder, data, batchSize = 64) => {
+  cancelMindMapImport(minder);
+  const task = { cancelled: false };
+  minder._mindMapImport = task;
+  minder._mindMapImportFailed = false;
+  minder._progressiveApplying = false;
+  try {
+    const prepared = prepareLargeMindMap(data);
+    minder._largeMindMap = prepared.isLarge;
+    if (!prepared.isLarge) {
+      minder._progressiveImporting = false;
+      minder.importJson(prepared.data);
+      task.completed = true;
+      return prepared;
+    }
+
+    const plan = createProgressiveMindMapPlan(prepared.data);
+    const importedNodes = [];
+    minder._progressiveImporting = true;
+    minder.fire('progressiveimportstart');
+    minder.importJson(plan.initialData);
+    await runInSlices(plan.entries, (entry, cursor) => {
+      const parent = entry.parentIndex === -1 ? minder.getRoot() : importedNodes[entry.parentIndex];
+      const node = minder.createNode(null, parent);
+      minder.importNode(node, entry.data);
+      importedNodes[cursor] = node;
+    }, task, batchSize);
+    if (task.cancelled) return { ...prepared, cancelled: true };
+    await renderMindMapProgressively(minder, [minder.getRoot(), ...importedNodes], task);
+    if (task.cancelled) return { ...prepared, cancelled: true };
+    minder._progressiveImporting = false;
+    task.completed = true;
+    minder.fire('progressiveimportdone');
+    return prepared;
+  } catch (error) {
+    if (minder._mindMapImport === task && !task.cancelled) {
+      minder._mindMapImportFailed = true;
+      minder.fire('progressiveimporterror');
+    }
+    throw error;
+  } finally {
+    if (minder._mindMapImport === task) {
+      minder._progressiveImporting = false;
+      minder._progressiveApplying = false;
+    }
   }
-  return setTimeout(
-    () => callback({ didTimeout: true, timeRemaining: () => 8 }),
-    0,
-  );
-};
-
-export const importMindMapProgressively = (minder, data, batchSize = 240) => {
-  const prepared = prepareLargeMindMap(data);
-  minder._largeMindMap = prepared.isLarge;
-  if (!prepared.isLarge) {
-    minder.importJson(prepared.data);
-    return Promise.resolve(prepared);
-  }
-
-  const plan = createProgressiveMindMapPlan(prepared.data);
-  const importedNodes = [];
-  let cursor = 0;
-  minder._progressiveImporting = true;
-  minder.importJson(plan.initialData);
-
-  return new Promise((resolve, reject) => {
-    const runBatch = deadline => {
-      try {
-        let processed = 0;
-        const startedAt = Date.now();
-        while (
-          cursor < plan.entries.length &&
-          processed < batchSize &&
-          (processed === 0 ||
-            (Date.now() - startedAt < 12 &&
-              (deadline.didTimeout || deadline.timeRemaining() > 1)))
-        ) {
-          const entry = plan.entries[cursor];
-          const parent =
-            entry.parentIndex === -1
-              ? minder.getRoot()
-              : importedNodes[entry.parentIndex];
-          const node = minder.createNode(null, parent);
-          minder.importNode(node, entry.data);
-          importedNodes[cursor] = node;
-          cursor += 1;
-          processed += 1;
-        }
-        if (cursor < plan.entries.length) {
-          scheduleIdle(runBatch);
-          return;
-        }
-        minder.refresh(0);
-        minder._progressiveImporting = false;
-        minder.fire('progressiveimportdone');
-        resolve(prepared);
-      } catch (error) {
-        minder._progressiveImporting = false;
-        reject(error);
-      }
-    };
-    scheduleIdle(runBatch);
-  });
 };

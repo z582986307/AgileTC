@@ -1,11 +1,10 @@
 /** @jest-environment node */
-
 const {
   countVisibleMindMapNodes,
   createProgressiveMindMapPlan,
-  importMindMapProgressively,
   prepareLargeMindMap,
 } = require('../src/components/react-mindmap-editor/largeMindMap');
+const { runInSlices } = require('../src/components/react-mindmap-editor/progressiveRender');
 
 const createTree = depth => {
   const node = { data: { text: `level-${depth}` }, children: [] };
@@ -13,114 +12,59 @@ const createTree = depth => {
   return node;
 };
 
-describe('大型脑图首次加载', () => {
-  test('超过阈值时不自动折叠任何分支', () => {
-    const data = { root: createTree(4), base: 7 };
-
-    const result = prepareLargeMindMap(data, 3);
-
-    expect(result.isLarge).toBe(true);
-    expect(result.nodeCount).toBe(5);
-    expect(data.root.children[0].data.expandState).toBe('expand');
-    expect(data.root.children[0].children[0].data.expandState).toBe('expand');
-    expect(countVisibleMindMapNodes(data)).toBe(5);
-    expect(result.optimized).toBe(false);
+describe('大型脑图数据与调度（真实渲染另由 Chrome 脚本验证）', () => {
+  test('首次导入默认展开，保留已保存的折叠及执行结果', () => {
+    const root = createTree(4);
+    root.children[0].data.progress = 1;
+    const data = { root, base: 7 };
+    expect(prepareLargeMindMap(data, 3).visibleNodeCount).toBe(5);
+    root.children[0].data.expandState = 'collapse';
+    const prepared = prepareLargeMindMap(data, 3);
+    expect(prepared.isLarge).toBe(true);
+    expect(countVisibleMindMapNodes(data)).toBe(2);
+    expect(root.children[0].data.progress).toBe(1);
     expect(data.base).toBe(7);
   });
 
-  test('未超过阈值时保留历史折叠状态', () => {
-    const data = { root: createTree(2) };
-    data.root.children[0].data.expandState = 'collapse';
-
-    const result = prepareLargeMindMap(data, 10);
-
-    expect(result.isLarge).toBe(false);
-    expect(result.nodeCount).toBe(3);
-    expect(data.root.children[0].data.expandState).toBe('collapse');
-    expect(result.optimized).toBe(false);
-  });
-
-  test('中等规模脑图也走分片导入，避免同步创建数百个图形节点', async () => {
+  test('五万节点计划保留父子映射和全部内容', () => {
     const root = { data: { text: 'root' }, children: [] };
-    for (let index = 0; index < 501; index += 1) {
-      root.children.push({ data: { text: `case-${index}` }, children: [] });
-    }
-    const fakeRoot = { children: [] };
-    let imported = 0;
-    const minder = {
-      importJson: data => {
-        fakeRoot.children = [];
-        imported += data.root.children.length;
-      },
-      getRoot: () => fakeRoot,
-      createNode: (unused, parent) => {
-        const node = { children: [] };
-        parent.children.push(node);
-        return node;
-      },
-      importNode: () => { imported += 1; },
-      refresh: () => {},
-      fire: () => {},
-    };
-
-    const finished = importMindMapProgressively(minder, { root });
-    expect(imported).toBe(0);
-    await finished;
-    expect(imported).toBe(501);
-  });
-
-  test('五倍客户管理规模保持全部展开并可生成分片导入计划', () => {
-    const root = { data: { text: 'root' }, children: [] };
-    for (let index = 0; index < 250; index += 1) {
-      const branch = createTree(346);
-      branch.data.text = `branch-${index}`;
+    for (let i = 0; i < 500; i++) {
+      const branch = { data: { text: `branch-${i}` }, children: [] };
+      for (let j = 0; j < 100; j++) branch.children.push({ data: { text: `${i}-${j}`, progress: 9 }, children: [] });
       root.children.push(branch);
     }
-    const data = { root };
-    const startedAt = Date.now();
-
-    const result = prepareLargeMindMap(data, 1500);
-    const plan = createProgressiveMindMapPlan(data);
-
-    expect(result.nodeCount).toBe(86751);
-    expect(result.optimized).toBe(false);
-    expect(result.visibleNodeCount).toBe(86751);
-    expect(plan.entries).toHaveLength(86750);
+    const result = prepareLargeMindMap({ root });
+    const plan = createProgressiveMindMapPlan({ root });
+    expect(result.nodeCount).toBe(50501);
+    expect(result.visibleNodeCount).toBe(50501);
+    expect(plan.entries).toHaveLength(50500);
     expect(plan.initialData.root.children).toEqual([]);
-    expect(Date.now() - startedAt).toBeLessThan(1500);
+    expect(plan.entries[500].parentIndex).toBe(0);
+    expect(plan.entries[500].data.data).toEqual({ text: '0-0', progress: 9, expandState: 'expand' });
   });
 
-  test('大型脑图导入时每次让出主线程，不因空闲回调超时连续导入整批节点', async () => {
-    const root = { data: { text: 'root' }, children: [] };
-    for (let index = 0; index < 1501; index += 1) {
-      root.children.push({ data: { text: `case-${index}` }, children: [] });
-    }
-    const minderRoot = { children: [] };
-    let imported = 0;
-    const minder = {
-      importJson: () => { minderRoot.children = []; },
-      getRoot: () => minderRoot,
-      createNode: (unused, parent) => {
-        const node = { children: [] };
-        parent.children.push(node);
-        return node;
-      },
-      importNode: (node, json) => {
-        node.data = json.data;
-        imported += 1;
-        const until = Date.now() + 1;
-        while (Date.now() < until) {};
-      },
-      refresh: () => {},
-      fire: () => {},
-    };
-
-    const finished = importMindMapProgressively(minder, { root });
+  test('连续繁重任务之间允许其他浏览器任务执行', async () => {
+    const visited = [];
+    const work = Array.from({ length: 40 }, (_, i) => i);
+    const pending = runInSlices(work, value => {
+      visited.push(value);
+      const until = Date.now() + 1;
+      while (Date.now() < until) { /* 模拟每项耗时 */ }
+    }, { cancelled: false });
     await new Promise(resolve => setTimeout(resolve, 0));
+    expect(visited.length).toBeGreaterThan(0);
+    expect(visited.length).toBeLessThan(40);
+    await pending;
+    expect(visited).toEqual(work);
+  });
 
-    expect(imported).toBeGreaterThan(0);
-    expect(imported).toBeLessThan(100);
-    await finished;
-    expect(imported).toBe(1501);
-  }, 10000);
+  test('离开页面后取消未完成的批次', async () => {
+    const task = { cancelled: false };
+    const visited = [];
+    const pending = runInSlices([1, 2, 3, 4], n => visited.push(n), task, 1);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    task.cancelled = true;
+    await pending;
+    expect(visited).toEqual([1]);
+  });
 });

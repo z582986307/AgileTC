@@ -45,7 +45,7 @@ import {
 } from './executionPanelUtils';
 import {
   importMindMapProgressively,
-  prepareLargeMindMap,
+  cancelMindMapImport,
 } from './largeMindMap';
 
 const HotBox = window.HotBox;
@@ -118,6 +118,8 @@ class KityminderEditor extends Component {
     this.initData = initData;
   }
   componentWillUnmount() {
+    cancelMindMapImport(this.minder);
+    if (this.minder && this.minder._paintGroups) this.minder._paintGroups.dispose();
     window.minderData = undefined;
     document.removeEventListener('keydown', this.handleKeyDown);
     clipboardRuntime.removeListener();
@@ -136,7 +138,9 @@ class KityminderEditor extends Component {
     return importMindMapProgressively(
       this.minder,
       normalizeRightMindMap(data),
-    ).then(() => this.minder.fire('contentchange'));
+    ).then(result => {
+      if (!result.cancelled) this.minder.fire('contentchange');
+    });
   };
   // 键盘事件的监听
   initKeyBoardEvent = () => {
@@ -145,10 +149,12 @@ class KityminderEditor extends Component {
     }, 300);
   };
   initOnEvent = minder => {
+    minder.on('progressiveimportstart', () => this.setState({ loading: true }));
     minder.on('import', () => {
       if (!minder._progressiveImporting) this.setState({ loading: false });
     });
     minder.on('progressiveimportdone', () => this.setState({ loading: false }));
+    minder.on('progressiveimporterror', () => this.setState({ loading: false }));
     const { readOnly } = this.props;
     // 视图选中节点变更事件
     minder.on('selectionchange', () => {
@@ -427,6 +433,7 @@ class KityminderEditor extends Component {
     }
   };
   sendPatch = e => {
+    if (this.minder._progressiveImporting || this.minder._mindMapImportFailed) return;
     if (this.skipNextContentChange) {
       this.skipNextContentChange = false;
       e.minder._status = 'normal';
@@ -804,9 +811,7 @@ class KityminderEditor extends Component {
           }
         }
       } else {
-        const dataJson = prepareLargeMindMap(
-          normalizeRightMindMap({ ...recv }),
-        ).data;
+        const dataJson = normalizeRightMindMap({ ...recv });
 
         // this.largeJsonImport(this.minder, data).then(() => {
         //   // 可以给个右下角的loading标记
@@ -816,7 +821,8 @@ class KityminderEditor extends Component {
           return;
         }
         window.minderData = undefined;
-        await importMindMapProgressively(this.minder, dataJson);
+        const result = await importMindMapProgressively(this.minder, dataJson);
+        if (result.cancelled) return;
         window.minderData = dataJson;
 
         // 第一次打开用例，预期base与用例的base保持一直

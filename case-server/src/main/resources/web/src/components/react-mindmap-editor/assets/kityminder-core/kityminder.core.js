@@ -571,7 +571,7 @@
          * @param {argument} args 要传递给命令的其它参数
          */
         execCommand: function (name) {
-          if (!name) return null;
+          if (!name || this._progressiveImporting || this._mindMapImportFailed) return null;
           name = name.toLowerCase();
           var cmdArgs = [].slice.call(arguments, 1),
             cmd,
@@ -752,17 +752,20 @@
           if (node.isRoot()) return;
           var connection = new kity.Path();
           node._connection = connection;
-          this._connectContainer.addShape(connection);
+          if (!this._progressiveImporting) this._connectContainer.addShape(connection);
           this.updateConnect(node);
         },
         removeConnect: function (node) {
           var me = this;
           node.traverse(function (node) {
-            me._connectContainer.removeShape(node._connection);
+            if (node._connection && node._connection.container) {
+              node._connection.container.removeShape(node._connection);
+            }
             node._connection = null;
           });
         },
         updateConnect: function (node) {
+          if (this._progressiveImporting && !this._progressiveApplying) return;
           var connection = node._connection;
           var parent = node.parent;
           if (!parent || !connection) return;
@@ -1000,6 +1003,10 @@
          */
         importJson: function (json) {
           if (!json) return;
+          if (this._paintGroups) {
+            this._paintGroups.dispose();
+            this._paintGroups = null;
+          }
           /**
            * @event preimport
            * @for Minder
@@ -1009,6 +1016,18 @@
           // 删除当前所有节点
           while (this._root.getChildren().length) {
             this.removeNode(this._root.getChildren()[0]);
+          }
+          if (this._progressiveGroups) {
+            // 保留根节点，移除上次导入创建的绘制分组。
+            var rootShape = this._root.getRenderContainer();
+            if (rootShape.container !== this.getRenderContainer()) {
+              if (rootShape.container) rootShape.container.removeShape(rootShape);
+              this.getRenderContainer().addShape(rootShape);
+            }
+            this._progressiveGroups.forEach(function (group) {
+              if (group.container) group.container.removeShape(group);
+            });
+            this._progressiveGroups = null;
           }
           json = compatibility(json);
           this.importNode(this._root, json.root);
@@ -1055,7 +1074,20 @@
               protocol: protocol,
             })
           );
-          return Promise.resolve(protocol.encode(json, this, option));
+          var release = this._paintGroups && (protocolName === 'svg' || protocolName === 'png')
+            ? this._paintGroups.revealForExport() : null;
+          try {
+            return Promise.resolve(protocol.encode(json, this, option)).then(function (result) {
+              if (release) release();
+              return result;
+            }, function (error) {
+              if (release) release();
+              throw error;
+            });
+          } catch (error) {
+            if (release) release();
+            throw error;
+          }
         },
         /**
          * @method importData()
@@ -2186,6 +2218,7 @@
           }
         },
         destroy: function () {
+          if (this._paintGroups) this._paintGroups.dispose();
           var modules = this._modules;
           this._resetEvents();
           this._garbage();
@@ -2518,7 +2551,7 @@
         },
         appendNode: function (node, parent, index) {
           if (parent) parent.insertChild(node, index);
-          if (!parent || parent.isExpanded()) {
+          if (!parent || (parent.attached && parent.isExpanded())) {
             this.attachNode(node);
           }
           return this;
@@ -2534,11 +2567,11 @@
         },
         attachNode: function (node) {
           var rc = this.getRenderContainer();
+          var deferAttach = this._progressiveImporting;
           node.traverse(function (current) {
             current.attached = true;
-            rc.addShape(current.getRenderContainer());
+            if (!deferAttach) rc.addShape(current.getRenderContainer());
           });
-          rc.addShape(node.getRenderContainer());
           this.fire('nodeattach', {
             node: node,
           });
@@ -2547,7 +2580,8 @@
           var rc = this.getRenderContainer();
           node.traverse(function (current) {
             current.attached = false;
-            rc.removeShape(current.getRenderContainer());
+            var shape = current.getRenderContainer();
+            if (shape.container) shape.container.removeShape(shape);
           });
           this.fire('nodedetach', {
             node: node,
@@ -5511,7 +5545,8 @@
             return this.expander;
           },
           shouldRender: function (node) {
-            return !node.isRoot();
+            // 末级节点没有展开入口；成为父节点时 render 会按需创建，避免大量隐藏控件和事件。
+            return !node.isRoot() && node.children.length > 0;
           },
           update: function (expander, node, box) {
             if (!node.parent) return;
@@ -6152,10 +6187,22 @@
           abs = Math.abs,
           sqrt = Math.sqrt,
           exp = Math.exp;
+        var pointIndexes = null;
+        var positionVersion = 0;
         function buildPositionNetwork(root) {
-          var pointIndexes = [],
-            p;
-          root.traverse(function (node) {
+          pointIndexes = [];
+          var pending = [root];
+          var ordered = [];
+          while (pending.length) {
+            var node = pending.pop();
+            ordered.push(node);
+            if (node.isExpanded()) {
+              for (var c = 0; c < node.children.length; c++) pending.push(node.children[c]);
+            }
+          }
+          // 与原 postTraverse 顺序一致，等距离节点的方向键选择也保持不变。
+          ordered.reverse().forEach(function (node) {
+            var p;
             p = node.getLayoutBox();
             // bugfix: 不应导航到收起的节点（判断其尺寸是否存在）
             if (p.width && p.height) {
@@ -6170,9 +6217,6 @@
               });
             }
           });
-          for (var i = 0; i < pointIndexes.length; i++) {
-            findClosestPointsFor(pointIndexes, i);
-          }
         }
         // 这是金泉的点子，赞！
         // 求两个不相交矩形的最近距离
@@ -6251,18 +6295,25 @@
             left: (most.left && most.left.node) || null,
             down: (most.down && most.down.node) || null,
           };
+          find.node._nearestNodesVersion = positionVersion;
         }
         function navigateTo(km, direction) {
+          if (km._progressiveImporting) return;
           var referNode = km.getSelectedNode();
           if (!referNode) {
             km.select(km.getRoot());
-            buildPositionNetwork(km.getRoot());
             return;
           }
-          if (!referNode._nearestNodes) {
-            buildPositionNetwork(km.getRoot());
+          if (!referNode._nearestNodes || referNode._nearestNodesVersion !== positionVersion) {
+            if (!pointIndexes) buildPositionNetwork(km.getRoot());
+            for (var i = 0; i < pointIndexes.length; i++) {
+              if (pointIndexes[i].node === referNode) {
+                findClosestPointsFor(pointIndexes, i);
+                break;
+              }
+            }
           }
-          var nextNode = referNode._nearestNodes[direction];
+          var nextNode = referNode._nearestNodes && referNode._nearestNodes[direction];
           if (nextNode) {
             km.select(nextNode, true);
           }
@@ -6272,8 +6323,9 @@
         return {
           events: {
             layoutallfinish: function () {
-              var root = this.getRoot();
-              buildPositionNetwork(root);
+              // 原实现为每个节点计算全部邻居，形成 O(N²) 加载阻塞。
+              pointIndexes = null;
+              positionVersion++;
             },
             'normal.keydown readonly.keydown': function (e) {
               var minder = this;
@@ -6951,27 +7003,15 @@
             this.width = this.height = size;
           },
           create: function () {
-            var pie, check, fail, block, skip;
+            var pie, mark;
             pie = new kity.Pie(9, 0).fill(PIE_COLOR);
-            check = new kity.Path()
+            mark = new kity.Path()
               .setTranslate(-10, -10)
-              .setPathData(CHECK_PATH)
               .fill(CHECK_COLOR);
-            fail = new kity.Path().setTranslate(-10, -10).setPathData(FAIL_PATH).fill(FAIL_COLOR);
-            block = new kity.Path()
-              .setTranslate(-10, -10)
-              .setPathData(BLOCK_PATH)
-              .fill('#FFFFFF');
-            skip = new kity.Path()
-              .setTranslate(-10, -10)
-              .setPathData(SKIP_PATH)
-              .fill(SKIP_COLOR);
-            this.addShapes([pie, skip, check, fail, block]);
+            // 每个节点只保留当前符号，不创建另外三个永远隐藏的结果图形。
+            this.addShapes([pie, mark]);
             this.pie = pie;
-            this.check = check;
-            this.fail = fail;
-            this.block = block;
-            this.skip = skip;
+            this.mark = mark;
           },
           setValue: function (value) {
             var statusColor = {
@@ -6981,10 +7021,9 @@
               9: '#22B573',
             }[value];
             this.pie.setAngle(360).fill(statusColor || PIE_COLOR);
-            this.check.setVisible(value == 9);
-            this.fail.setVisible(value == 1);
-            this.block.setVisible(value == 5);
-            this.skip.setVisible(value == 4);
+            var path = { 1: FAIL_PATH, 4: SKIP_PATH, 5: BLOCK_PATH, 9: CHECK_PATH }[value];
+            this.mark.setVisible(Boolean(path));
+            if (path) this.mark.setPathData(path);
           },
         });
         /**
@@ -7877,6 +7916,7 @@
             i++
           ) {
             textShape.setContent(text);
+            textShape.setY(yStart + i * fontSize * lineHeight);
             if (kity.Browser.ie || kity.Browser.edge) {
               textShape.fixPosition();
             }
@@ -7893,7 +7933,6 @@
           return function () {
             textGroup.eachItem(function (i, textShape) {
               var y = yStart + i * fontSize * lineHeight;
-              textShape.setY(y);
               var bbox = textShape.getBoundaryBox();
               rBox = rBox.merge(new kity.Box(0, y, (bbox.height && bbox.width) || 1, fontSize));
             });

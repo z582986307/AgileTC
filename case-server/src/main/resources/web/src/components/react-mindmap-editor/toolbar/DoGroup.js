@@ -16,16 +16,21 @@ class DoGroup extends Component {
   };
   componentDidMount() {
     let { minder } = this.props;
-    minder.on('import', this.reset);
+    minder.on('import progressiveimportdone', this.reset);
     // minder.on('patch', this.updateSelection);
   }
   reset = () => {
+    if (this.props.minder._progressiveImporting) return;
     this.setState({
       undoDiffs: [],
       redoDiffs: [],
       lastSnap: this.props.minder.exportJson(),
     });
   };
+
+  componentWillUnmount() {
+    this.props.minder.off('import progressiveimportdone', this.reset);
+  }
 
   makeUndoDiff = () => {
     const { minder } = this.props;
