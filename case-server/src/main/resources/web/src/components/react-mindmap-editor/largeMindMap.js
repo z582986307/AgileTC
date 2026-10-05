@@ -103,6 +103,7 @@ export const importMindMapProgressively = async (minder, data, batchSize = 64) =
   try {
     const prepared = prepareLargeMindMap(data);
     minder._largeMindMap = prepared.isLarge;
+    minder._boundedRenderObjects = prepared.nodeCount > 2000;
     if (!prepared.isLarge) {
       minder._progressiveImporting = false;
       minder.importJson(prepared.data);

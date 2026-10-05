@@ -155,6 +155,7 @@ class KityminderEditor extends Component {
     });
     minder.on('progressiveimportdone', () => this.setState({ loading: false }));
     minder.on('progressiveimporterror', () => this.setState({ loading: false }));
+    minder.on('layouterror', () => notification.error({ message: '脑图布局更新失败，请重新进入当前页面' }));
     const { readOnly } = this.props;
     // 视图选中节点变更事件
     minder.on('selectionchange', () => {
@@ -166,7 +167,8 @@ class KityminderEditor extends Component {
         if (showEdit) {
           if (selectedNode.getText() !== inputContent) {
             selectedNode.setText(inputContent);
-            this.minder.refresh();
+            selectedNode.render();
+            this.minder.layout()._interactChange();
             this.minder.fire('contentchange');
           }
           this.setState({ showEdit: false, inputContent: null });
@@ -424,7 +426,8 @@ class KityminderEditor extends Component {
         e.preventDefault();
         selectedNode.setText(inputContent);
         // this.minder.setStatus('readonly');
-        this.minder.refresh();
+        selectedNode.render();
+        this.minder.layout()._interactChange();
         // this.minder.setStatus('normal');
         this.minder.fire('contentchange');
         this.setState({ showEdit: false, inputContent: null });
@@ -1148,7 +1151,8 @@ class KityminderEditor extends Component {
                 onChange={this.handleInputChange}
                 onBlur={() => {
                   // minder.setStatus('readonly');
-                  minder.refresh();
+                  if (selectedNode) selectedNode.render();
+                  minder.layout()._interactChange();
                   // this.minder.setStatus('normal');
                   minder.fire('contentchange');
                 }}

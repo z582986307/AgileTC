@@ -99,19 +99,24 @@ async function main() {
         await importMindMapProgressively(minder, data);
       }
       const duration = performance.now() - start;
-      await new Promise(resolve => setTimeout(resolve, 100));
-      clearInterval(heartbeat);
-      observer.disconnect();
+      // 心跳持续覆盖首次操作、最后节点显示及其后的 15 秒。
+      window.finishPerformanceObservation = () => {
+        clearInterval(heartbeat);
+        observer.takeRecords().forEach(e => longTasks.push(e.duration));
+        observer.disconnect();
+        return { maxHeartbeatMs: Math.round(maxDelay), maxLongTaskMs: Math.round(Math.max(0, ...longTasks)), longTasks: longTasks.length, ticks };
+      };
       const nodes = minder.getAllNode();
       const leaves = nodes.filter(n => !n.children.length);
-      const rendered = nodes.filter(n => n._renderers && n._contentBox);
+      const measured = nodes.filter(n => n._contentBox);
+      const liveRenderers = nodes.filter(n => n._renderers).length;
       const finite = nodes.every(n => {
         const m = n.getGlobalLayoutTransform();
         return m && Number.isFinite(m.m.e) && Number.isFinite(m.m.f);
       });
       const result = {
         requestedLeaves: nodeCount, nodes: nodes.length, leaves: leaves.length,
-        rendered: rendered.length, finite, durationMs: Math.round(duration),
+        measured: measured.length, liveRenderers, finite, durationMs: Math.round(duration),
         maxHeartbeatMs: Math.round(maxDelay), maxLongTaskMs: Math.round(Math.max(0, ...longTasks)),
         longTasks: longTasks.length, ticks,
         expanded: nodes.every(n => n.isExpanded()),
@@ -124,9 +129,7 @@ async function main() {
       window.testMinder = minder;
       return result;
     }, { nodeCount: count, mode });
-    if (process.env.MINDMAP_TRACE) await page.tracing.stop();
     if (mode !== 'engine') {
-      await page.waitForTimeout(1500);
       await page.evaluate(() => {
         const leaf = window.testMinder.getRoot().children[0].children[0];
         window.testMinder.setOption('viewAnimationDuration', 0);
@@ -172,6 +175,11 @@ async function main() {
       await page.mouse.click(farPoint.x, farPoint.y);
       result.farNodeSelected = await page.evaluate(() => window.testMinder.getSelectedNode() === window.__farLeaf);
       assert(result.farNodeSelected, '远处节点显示后无法真实点击选中');
+      result.lastNodePainted = await page.evaluate(lastIndex => {
+        const texts = window.__farLeaf.getRenderContainer().node.querySelectorAll('text');
+        return texts.length > 0 && Array.from(texts).some(text => text.textContent.includes(`客户管理用例 ${lastIndex}：`));
+      }, count - 1);
+      assert(result.lastNodePainted, '最后末级节点没有绘制正文');
       const oldMovement = await page.evaluate(() => window.testMinder.getViewDragger().getMovement().y);
       await page.keyboard.down('Alt');
       await page.mouse.move(200, 700);
@@ -184,11 +192,16 @@ async function main() {
       assert(result.farRegionMs < 500, `远区域显示延迟 ${result.farRegionMs}ms`);
       await page.screenshot({ path: path.join(output, `${mode}-${count}.png`) });
     }
+    await page.waitForTimeout(15000);
+    Object.assign(result, await page.evaluate(() => window.finishPerformanceObservation()));
+    if (process.env.MINDMAP_TRACE) await page.tracing.stop();
     result.errors = errors;
     fs.writeFileSync(path.join(output, `${mode}-${count}.json`), JSON.stringify(result, null, 2));
     console.log(JSON.stringify(result));
     assert.strictEqual(result.leaves, count);
-    assert.strictEqual(result.rendered, result.nodes);
+    assert.strictEqual(result.measured, result.nodes);
+    if (count >= 5000) assert(result.liveRenderers < 2000, `屏外绘制对象未释放：${result.liveRenderers}`);
+    if (count >= 5000) assert(result.domElements < 15000, `屏外 SVG 容器未释放：${result.domElements}`);
     assert(result.finite && result.expanded && result.statesPreserved);
     assert.strictEqual(errors.length, 0);
     assert(result.maxHeartbeatMs < 500, `加载期间主线程连续失去响应 ${result.maxHeartbeatMs}ms`);

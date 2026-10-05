@@ -35,7 +35,7 @@ async function main() {
       const data = { template: 'right', theme: 'byte-blue', base: 21, root: { data: { text: '回归根节点' }, children: [] } };
       for (let i = 0; i < 10; i++) {
         const branch = { data: { text: `分支 ${i}`, expandState: i === 1 ? 'collapse' : 'expand' }, children: [] };
-        for (let j = 0; j < 60; j++) branch.children.push({ data: { text: j % 2 ? `用例 ${i}-${j}` : '多行正文\n第二行包含中文和 English', progress: [undefined, 9, 1, 5, 4][j % 5], note: '备注保留' }, children: [] });
+        for (let j = 0; j < 300; j++) branch.children.push({ data: { text: j % 2 ? `用例 ${i}-${j}` : '多行正文\n第二行包含中文和 English', progress: [undefined, 9, 1, 5, 4][j % 5], note: '备注保留' }, children: [] });
         data.root.children.push(branch);
       }
       prepareLargeMindMap(data);
@@ -59,15 +59,28 @@ async function main() {
       const sameData = JSON.stringify(minder.exportJson()) === JSON.stringify(expected);
       const collapsed = minder.getRoot().children[1];
       const collapsePreserved = collapsed.isCollapsed() && collapsed.children.every(n => !n.getRenderContainer().node.isConnected);
-      const allOtherMounted = minder.getRoot().children.filter(n => n !== collapsed).every(n => n.children.every(c => c.getRenderContainer().node.isConnected));
+      const visibleNodes = minder.getAllNode().filter(n => n._contentBox);
+      const graphicsBounded = visibleNodes.filter(n => n.rc).length < 1000;
       const exportedSvg = svgSummary(await minder.exportData('svg'));
       const svgExportComplete = JSON.stringify(exportedSvg) === JSON.stringify(baselineSvg);
       cancelMindMapImport(minder);
       const completedStillCacheable = isMindMapReady(minder);
       const leaf = minder.getRoot().children[0].children[0];
+      minder.setOption('viewAnimationDuration', 0);
+      minder.execCommand('camera', leaf, 0);
       minder.select(leaf, true);
       minder.execCommand('AppendChildNode', '新增子节点');
       const expanderCreatedWhenNeeded = Boolean(leaf.getRenderer('ExpanderRenderer').getRenderShape()) && leaf.children.length === 1;
+      leaf.setText('连续编辑后最终文字');
+      leaf.render();
+      minder.layout();
+      await minder._pendingLayout;
+      const asyncGeometry = snapshot();
+      const schedule = minder._scheduleLayout;
+      minder._scheduleLayout = null;
+      minder.layout();
+      const asyncLayoutMatches = JSON.stringify(snapshot()) === JSON.stringify(asyncGeometry);
+      minder._scheduleLayout = schedule;
       // 原有删除/重新导入操作必须能清理分组内的节点和连线。
       const removed = minder.getRoot().children[0];
       const removedShapes = removed.children.map(n => n.getRenderContainer().node);
@@ -94,11 +107,11 @@ async function main() {
       const failureProtected = failed && minder._mindMapImportFailed && !isMindMapReady(minder);
       await importMindMapProgressively(minder, clone(replacement));
       const retryReady = isMindMapReady(minder) && !minder._mindMapImportFailed;
-      return { sameGeometry, sameData, collapsePreserved, allOtherMounted, svgExportComplete, completedStillCacheable, expanderCreatedWhenNeeded, removedCleanly, removedReferencesReleased, replacementSafe, failureProtected, retryReady, comparedVisibleNodes: baseline.length };
+      return { sameGeometry, sameData, collapsePreserved, graphicsBounded, svgExportComplete, completedStillCacheable, expanderCreatedWhenNeeded, asyncLayoutMatches, removedCleanly, removedReferencesReleased, replacementSafe, failureProtected, retryReady, comparedVisibleNodes: baseline.length };
     });
     fs.writeFileSync(path.join(output, 'regressions.json'), JSON.stringify(result, null, 2));
     console.log(JSON.stringify(result));
-    for (const name of ['sameGeometry', 'sameData', 'collapsePreserved', 'allOtherMounted', 'svgExportComplete', 'completedStillCacheable', 'expanderCreatedWhenNeeded', 'removedCleanly', 'removedReferencesReleased', 'replacementSafe', 'failureProtected', 'retryReady']) assert(result[name], `${name} 回归失败`);
+    for (const name of ['sameGeometry', 'sameData', 'collapsePreserved', 'graphicsBounded', 'svgExportComplete', 'completedStillCacheable', 'expanderCreatedWhenNeeded', 'asyncLayoutMatches', 'removedCleanly', 'removedReferencesReleased', 'replacementSafe', 'failureProtected', 'retryReady']) assert(result[name], `${name} 回归失败`);
   } finally {
     if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));

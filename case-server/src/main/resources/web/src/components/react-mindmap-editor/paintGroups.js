@@ -1,4 +1,12 @@
-// 全量数据、布局和 SVG 节点保留；仅跳过屏幕外分组的原生绘制。
+// 数据与布局全量保留，大图屏外 renderer 图形释放，避免隐藏 SVG 仍参与大规模 GC。
+export const releaseNodeGraphics = node => {
+  const container = node.rc;
+  if (container && container.container) container.container.removeShape(container);
+  node.rc = null;
+  node._renderers = null;
+  node.expanderRenderer = null;
+};
+
 // 平移/缩放事件内同步更新，不等待网络或异步补建节点。
 export const createPaintGroups = minder => {
   const groups = [];
@@ -8,6 +16,41 @@ export const createPaintGroups = minder => {
   let frame = null;
   let disposed = false;
   let exportsInProgress = 0;
+  let restoring = false;
+
+  const restore = (entry, view) => {
+    if (!minder._boundedRenderObjects) return;
+    if (entry.connections) {
+      entry.nodes.forEach(node => {
+        if (!node.attached || node.isRoot()) return;
+        const from = node.parent.getLayoutVertexOut();
+        const to = node.getLayoutVertexIn();
+        const visible = exportsInProgress || (Math.max(from.x, to.x) + 24 >= view.left && Math.min(from.x, to.x) - 24 <= view.right && Math.max(from.y, to.y) + 24 >= view.top && Math.min(from.y, to.y) - 24 <= view.bottom);
+        if (!visible) {
+          const old = node.getConnection();
+          if (old && old.container) old.container.removeShape(old);
+          node._connection = null;
+          return;
+        }
+        if (node.getConnection()) return;
+        // 初次导入仍在进行时，沿用连接线渲染器而不提前结束 loading。
+        const connection = new window.kity.Path();
+        node._connection = connection;
+        entry.shape.addShape(connection);
+        minder.updateConnect(node);
+      });
+      return;
+    }
+    const missing = entry.nodes.filter(node => node.attached && !node._renderers);
+    if (!missing.length) return;
+    restoring = true;
+    try {
+      entry.shape.node.style.display = '';
+      missing.forEach(node => entry.shape.addShape(node.getRenderContainer()));
+      minder.renderNodeBatch(missing);
+      missing.forEach(node => minder.fire('layoutapply', { node, matrix: node.getGlobalLayoutTransform() }));
+    } finally { restoring = false; }
+  };
 
   const getView = () => {
     const box = minder.getViewDragger().getView();
@@ -37,9 +80,19 @@ export const createPaintGroups = minder => {
 
   const apply = (entry, view) => {
     const b = entry.box;
-    const visible = exportsInProgress || (b.right >= view.left && b.left <= view.right && b.bottom >= view.top && b.top <= view.bottom);
+    const selected = minder.getSelectedNodes().some(node => nodeGroups.get(node) === entry);
+    const visible = exportsInProgress || selected || (b.right >= view.left && b.left <= view.right && b.bottom >= view.top && b.top <= view.bottom);
     const display = visible ? '' : 'none';
     if (entry.shape.node.style.display !== display) entry.shape.node.style.display = display;
+    if (visible) restore(entry, view);
+    else if (minder._boundedRenderObjects) entry.nodes.forEach(node => {
+      if (!entry.connections) releaseNodeGraphics(node);
+      else {
+        const connection = node.getConnection();
+        if (connection && connection.container) connection.container.removeShape(connection);
+        node._connection = null;
+      }
+    });
   };
 
   const update = () => {
@@ -53,7 +106,7 @@ export const createPaintGroups = minder => {
   };
 
   const changed = event => {
-    if (minder._progressiveImporting || disposed) return;
+    if (minder._progressiveImporting || disposed || restoring) return;
     const node = event.node;
     if (!node) return;
     const mark = entry => { if (entry) dirty.add(entry); };
@@ -68,7 +121,10 @@ export const createPaintGroups = minder => {
     const target = event.commandArgs[0] || minder.getRoot();
     const entry = nodeGroups.get(target);
     // Camera 沿用原有 SVG 包围盒算法，读取前先恢复目标分组。
-    if (entry) entry.shape.node.style.display = '';
+    if (entry) {
+      entry.shape.node.style.display = '';
+      restore(entry);
+    }
   };
 
   const removed = event => {
@@ -89,7 +145,7 @@ export const createPaintGroups = minder => {
     if (frame === null) frame = requestAnimationFrame(update);
   };
 
-  minder.on('viewchange layout layoutallfinish resize', update);
+  minder.on('viewchange layout layoutallfinish resize selectionchange', update);
   minder.on('layoutapply noderender', changed);
   minder.on('beforeExecCommand', beforeCommand);
   minder.on('noderemove', removed);
@@ -102,14 +158,14 @@ export const createPaintGroups = minder => {
         const entry = { shape, nodes, connections };
         const index = connections ? connectionGroups : nodeGroups;
         nodes.forEach(node => {
-          const child = connections ? node.getConnection() : node.getRenderContainer();
+          const child = connections ? node.getConnection() : node.rc;
           if (child) shape.addShape(child);
           index.set(node, entry);
         });
+        (connections ? minder.getConnectContainer() : minder.getRenderContainer()).addShape(shape);
         measure(entry);
         apply(entry, view);
         groups.push(entry);
-        (connections ? minder.getConnectContainer() : minder.getRenderContainer()).addShape(shape);
         minder._progressiveGroups.push(shape);
       });
     },
@@ -127,8 +183,10 @@ export const createPaintGroups = minder => {
     dispose() {
       if (disposed) return;
       disposed = true;
+      if (minder._layoutTask) minder._layoutTask.cancelled = true;
+      minder._scheduleLayout = null;
       if (frame !== null) cancelAnimationFrame(frame);
-      minder.off('viewchange layout layoutallfinish resize', update);
+      minder.off('viewchange layout layoutallfinish resize selectionchange', update);
       minder.off('layoutapply noderender', changed);
       minder.off('beforeExecCommand', beforeCommand);
       minder.off('noderemove', removed);

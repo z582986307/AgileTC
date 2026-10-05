@@ -1,4 +1,4 @@
-import { createPaintGroups } from './paintGroups';
+import { createPaintGroups, releaseNodeGraphics } from './paintGroups';
 
 // 每个阶段都让出主线程；不能在最后再调用一次同步 refresh。
 const now = () => (typeof performance === 'undefined' ? Date.now() : performance.now());
@@ -42,7 +42,51 @@ export const createSpatialRenderGroups = async (nodes, task) => {
   return groups;
 };
 
+// 编辑后的布局同样分片；后续编辑取消旧一代计算，数据和命令返回值保持原样。
+const scheduleLayout = minder => {
+  if (minder._layoutTask) minder._layoutTask.cancelled = true;
+  const task = { cancelled: false };
+  minder._layoutTask = task;
+  const pending = (async () => {
+    const nodes = [minder.getRoot()];
+    for (let cursor = 0; cursor < nodes.length; cursor++) {
+      if (nodes[cursor].isExpanded()) nodes.push(...nodes[cursor].children);
+    }
+    await runInSlices(nodes, node => node.setLayoutTransform(null), task, 256);
+    const bottomUp = nodes.slice().reverse();
+    for (let round = 1; round <= 2; round++) {
+      await runInSlices(bottomUp, node => node.getLayoutInstance().doLayout(node, node.isExpanded() ? node.children : [], round), task);
+      if (task.cancelled) return;
+    }
+    await runInSlices(nodes, node => {
+      const parent = node.parent ? node.parent.getGlobalLayoutTransform() : new window.kity.Matrix();
+      const matrix = node.getLayoutTransform().merge(parent.clone());
+      const offset = node.getLayoutOffset();
+      matrix.translate(offset.x, offset.y);
+      matrix.m.e = Math.round(matrix.m.e);
+      matrix.m.f = Math.round(matrix.m.f);
+      node.setGlobalLayoutTransform(matrix);
+      minder.fire('layoutapply', { node, matrix });
+      minder.fire('layoutfinish', { node, matrix });
+    }, task, 128);
+    if (!task.cancelled) {
+      minder.fire('layout');
+      minder.fire('layoutallfinish');
+      minder._interactChange();
+    }
+  })();
+  minder._pendingLayout = pending;
+  pending.then(() => {
+    if (minder._pendingLayout === pending) minder._pendingLayout = null;
+  }, error => {
+    if (minder._pendingLayout === pending) minder._pendingLayout = null;
+    if (!task.cancelled) minder.fire('layouterror', { error });
+  });
+  return minder;
+};
+
 export const renderMindMapProgressively = async (minder, nodes, task) => {
+  minder._boundedRenderObjects = nodes.length > 2000;
   const visible = [];
   const visibleSet = new Set();
   await runInSlices(nodes, node => {
@@ -62,7 +106,10 @@ export const renderMindMapProgressively = async (minder, nodes, task) => {
     // 只将本批放进 SVG 测量。已测量节点暂存，避免每次测量都重排持续增长的整图。
     batch.forEach(node => container.addShape(node.getRenderContainer()));
     minder.renderNodeBatch(batch);
-    batch.forEach(node => container.removeShape(node.getRenderContainer()));
+    batch.forEach(node => {
+      container.removeShape(node.getRenderContainer());
+      if (minder._boundedRenderObjects) releaseNodeGraphics(node);
+    });
   }, task, 1);
   if (task.cancelled) return;
 
@@ -105,4 +152,5 @@ export const renderMindMapProgressively = async (minder, nodes, task) => {
   minder.fire('layoutallfinish');
   minder.fire('contentchange');
   minder._interactChange();
+  if (minder._boundedRenderObjects) minder._scheduleLayout = () => scheduleLayout(minder);
 };

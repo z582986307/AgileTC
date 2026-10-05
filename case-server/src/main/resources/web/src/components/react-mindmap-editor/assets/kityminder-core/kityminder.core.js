@@ -750,6 +750,7 @@
         },
         createConnect: function (node) {
           if (node.isRoot()) return;
+          if (this._boundedRenderObjects && this._progressiveImporting) return;
           var connection = new kity.Path();
           node._connection = connection;
           if (!this._progressiveImporting) this._connectContainer.addShape(connection);
@@ -1057,6 +1058,10 @@
          * @param {string} protocol 指定的数据协议（默认内置五种数据协议 `json`、`text`、`markdown`、`svg` 和 `png`）
          */
         exportData: function (protocolName, option) {
+          if (this._pendingLayout && (protocolName === 'svg' || protocolName === 'png')) {
+            var me = this;
+            return this._pendingLayout.then(function () { return me.exportData(protocolName, option); });
+          }
           var json, protocol;
           json = this.exportJson();
           // 指定了协议进行导出，需要检测协议是否支持
@@ -1876,7 +1881,8 @@
          * 设置当前节点相对于全局的布局变换（冗余优化）
          */
         setGlobalLayoutTransform: function (matrix) {
-          this.getRenderContainer().setMatrix((this._globalLayoutTransform = matrix));
+          this._globalLayoutTransform = matrix;
+          if (this.rc) this.rc.setMatrix(matrix);
           return this;
         },
         setVertexIn: function (p) {
@@ -1960,6 +1966,7 @@
        */
       kity.extendClass(Minder, {
         layout: function () {
+          if (this._scheduleLayout && !this._progressiveImporting) return this._scheduleLayout();
           var duration = this.getOption('layoutAnimationDuration');
           this.getRoot().traverse(function (node) {
             // clear last results
@@ -2276,8 +2283,7 @@
           }
         },
         initContainers: function () {
-          this.rc = new kity.Group().setId(utils.uuid('minder_node'));
-          this.rc.minderNode = this;
+          this.rc = null;
         },
         /**
          * 判断节点是否根节点
@@ -2449,6 +2455,11 @@
           return this.children[index];
         },
         getRenderContainer: function () {
+          if (!this.rc) {
+            this.rc = new kity.Group().setId(utils.uuid('minder_node'));
+            this.rc.minderNode = this;
+            if (this._globalLayoutTransform) this.rc.setMatrix(this._globalLayoutTransform);
+          }
           return this.rc;
         },
         getCommonAncestor: function (node) {
@@ -2580,8 +2591,8 @@
           var rc = this.getRenderContainer();
           node.traverse(function (current) {
             current.attached = false;
-            var shape = current.getRenderContainer();
-            if (shape.container) shape.container.removeShape(shape);
+            var shape = current.rc;
+            if (shape && shape.container) shape.container.removeShape(shape);
           });
           this.fire('nodedetach', {
             node: node,
@@ -5570,7 +5581,7 @@
           events: {
             layoutapply: function (e) {
               var r = e.node.getRenderer('ExpanderRenderer');
-              if (r.getRenderShape()) {
+              if (r && r.getRenderShape()) {
                 r.update(r.getRenderShape(), e.node);
               }
             },
