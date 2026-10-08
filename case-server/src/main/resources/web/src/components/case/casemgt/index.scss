@@ -69,6 +69,11 @@
     padding: 0 8px 0 0;
     color: #3370ff;
 
+    .anticon,
+    > span {
+        color: inherit;
+    }
+
     &:hover,
     &:focus {
         color: #245bdb;

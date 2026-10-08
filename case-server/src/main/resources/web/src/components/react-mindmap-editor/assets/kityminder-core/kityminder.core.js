@@ -5882,7 +5882,8 @@
               var link = new kity.HyperLink();
               var linkshape = new kity.Path();
               var outline = new kity.Rect(24, 22, -2, -6, 4).fill('rgba(255, 255, 255, 0)');
-              linkshape.setPathData(linkShapePath).fill('#666');
+              group.addShape(new kity.Rect(46, 22, -2, -6, 4).fill('rgba(255, 255, 255, 0)'));
+              linkshape.setPathData(linkShapePath).fill('#3370ff');
               link.addShape(outline);
               link.addShape(linkshape);
               group.addShape(link);
@@ -5899,11 +5900,13 @@
               remove.setVisible(false);
               group.addShape(remove);
               group.node.addEventListener('mouseenter', function () {
-                outline.fill('rgba(255, 255, 200, .8)');
+                outline.fill('rgba(51, 112, 255, .08)');
+                linkshape.fill('#245bdb');
                 remove.setVisible(true);
               });
               group.node.addEventListener('mouseleave', function () {
                 outline.fill('rgba(255, 255, 255, 0)');
+                linkshape.fill('#3370ff');
                 remove.setVisible(false);
               });
               remove.on('mousedown', function (event) {

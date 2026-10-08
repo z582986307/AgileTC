@@ -101,6 +101,34 @@ async function main() {
     }));
     assert.strictEqual(initialZoom.actual, 120, '当前实际 120% 应成为新默认比例');
     assert.strictEqual(initialZoom.displayed, '100%', '新默认比例应显示 100%');
+    const toolbarStyle = await editorPage.evaluate(() => {
+      const history = [...document.querySelectorAll('.do-group .ant-btn-link')].map(button => {
+        const icon = button.querySelector('.do-group-history-icon');
+        const label = button.querySelector('.do-group-label');
+        const buttonBox = button.getBoundingClientRect();
+        const iconBox = icon.getBoundingClientRect();
+        const labelBox = label.getBoundingClientRect();
+        const paths = [...icon.querySelectorAll('path')].map(path => path.getBoundingClientRect());
+        return {
+          visualCenter: (Math.min(iconBox.top, labelBox.top) + Math.max(iconBox.bottom, labelBox.bottom)) / 2,
+          visualX: (Math.min(...paths.map(box => box.left), labelBox.left) + Math.max(...paths.map(box => box.right), labelBox.right)) / 2,
+          buttonCenter: (buttonBox.top + buttonBox.bottom) / 2,
+          buttonX: (buttonBox.left + buttonBox.right) / 2,
+        };
+      });
+      const outlook = document.querySelector('.mindmap-outlook-toggle');
+      const fullscreen = [...document.querySelectorAll('.kityminder-tools-tab .ant-btn-link')].find(item => item.textContent.includes('全屏'));
+      return {
+        history,
+        outlookColor: getComputedStyle(outlook).color,
+        fullscreenColor: getComputedStyle(fullscreen).color,
+      };
+    });
+    assert.strictEqual(toolbarStyle.history.length, 2, '撤销、重做按钮应同时展示');
+    for (const button of toolbarStyle.history) {
+      assert(Math.abs(button.visualCenter - button.buttonCenter) < 0.75, `撤销/重做内容应垂直居中：${JSON.stringify(button)}`);
+      assert(Math.abs(button.visualX - button.buttonX) < 0.5, `撤销/重做图标与文字整体应水平居中：${JSON.stringify(button)}`);
+    }
     await editorPage.mouse.move(500, 250);
     await editorPage.keyboard.down('Control');
     await editorPage.mouse.wheel({ deltaY: -120 });
@@ -117,22 +145,41 @@ async function main() {
       const shape = node.getRenderer('hyperlinkrender').getRenderShape().node;
       const link = shape.querySelector('a');
       const remove = shape.querySelector('[data-link-remove="true"]');
-      return { link: Boolean(link), remove: Boolean(remove), hidden: remove && getComputedStyle(remove).display === 'none' };
+      const color = shape.querySelector('a path:last-child').getAttribute('fill');
+      return { link: Boolean(link), remove: Boolean(remove), hidden: remove && getComputedStyle(remove).display === 'none', color };
     });
     assert(hover.link && hover.remove && hover.hidden, `节点链接右侧应有默认隐藏的删除按钮: ${JSON.stringify(hover)}`);
     await editorPage.evaluate(() => {
-      const shape = window.testEditor.minder.getRoot().children[0].getRenderer('hyperlinkrender').getRenderShape().node;
-      shape.dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+      const minder = window.testEditor.minder;
+      minder.setOption('viewAnimationDuration', 0);
+      minder.execCommand('camera', minder.getRoot().children[0], 0);
     });
+    await editorPage.waitForTimeout(350);
+    const nodeLinkPoint = await editorPage.evaluate(() => {
+      const shape = window.testEditor.minder.getRoot().children[0].getRenderer('hyperlinkrender').getRenderShape().node;
+      const link = shape.querySelector('a').getBoundingClientRect();
+      return { x: link.x + link.width / 2, y: link.y + link.height / 2 };
+    });
+    await editorPage.mouse.move(nodeLinkPoint.x, nodeLinkPoint.y);
     const shown = await editorPage.evaluate(() => {
       const shape = window.testEditor.minder.getRoot().children[0].getRenderer('hyperlinkrender').getRenderShape().node;
       return getComputedStyle(shape.querySelector('[data-link-remove="true"]')).display !== 'none';
     });
     assert(shown, '悬浮节点链接时应显示删除按钮');
-    await editorPage.evaluate(() => {
+    const removePoint = await editorPage.evaluate(() => {
       const shape = window.testEditor.minder.getRoot().children[0].getRenderer('hyperlinkrender').getRenderShape().node;
-      shape.querySelector('[data-link-remove="true"]').dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
+      const remove = shape.querySelector('[data-link-remove="true"]').getBoundingClientRect();
+      return { x: remove.x + remove.width / 2, y: remove.y + remove.height / 2 };
     });
+    await editorPage.mouse.move((nodeLinkPoint.x + removePoint.x) / 2, nodeLinkPoint.y);
+    const stillShown = await editorPage.evaluate(() => {
+      const shape = window.testEditor.minder.getRoot().children[0].getRenderer('hyperlinkrender').getRenderShape().node;
+      return getComputedStyle(shape.querySelector('[data-link-remove="true"]')).display !== 'none';
+    });
+    assert(stillShown, '鼠标从链接移向删除按钮时按钮不应消失');
+    assert.strictEqual(hover.color, '#3370ff', '节点链接应采用与返回文字一致的主蓝色');
+    await editorPage.mouse.move(removePoint.x, removePoint.y);
+    await editorPage.mouse.click(removePoint.x, removePoint.y);
     const deleted = await editorPage.evaluate(() => {
       const node = window.testEditor.minder.getRoot().children[0];
       const renderer = node.getRenderer('hyperlinkrender');
@@ -141,6 +188,7 @@ async function main() {
     });
     assert.strictEqual(deleted.url, null, '删除后节点应清除链接数据');
     assert.strictEqual(deleted.visible, false, '删除后节点不应继续显示链接图标');
+    assert.strictEqual(toolbarStyle.outlookColor, toolbarStyle.fullscreenColor, '外观文案应与全屏文案同色');
     const layout = await editorPage.evaluate(() => {
       const outer = document.querySelector('.kityminder-editor-container').getBoundingClientRect();
       const canvas = document.querySelector('.kityminder-core-container').getBoundingClientRect();
@@ -177,6 +225,21 @@ async function main() {
     assert(Math.abs(viewportLayout.left) <= 1, '非全屏画布左侧应贴住浏览器边缘');
     assert(Math.abs(viewportLayout.right - viewportLayout.viewportWidth) <= 1, '非全屏画布右侧应贴住浏览器边缘');
     assert(Math.abs(viewportLayout.bottom - viewportLayout.viewportHeight) <= 1, `非全屏画布底部应贴住浏览器边缘: ${JSON.stringify(viewportLayout)}`);
+    const returnColors = await layoutPage.evaluate(() => {
+      const button = document.createElement('button');
+      button.className = 'ant-btn ant-btn-link case-detail-back';
+      button.innerHTML = '<i class="anticon">←</i><span>返回</span>';
+      document.body.appendChild(button);
+      const colors = {
+        button: getComputedStyle(button).color,
+        icon: getComputedStyle(button.querySelector('.anticon')).color,
+        text: getComputedStyle(button.querySelector('span')).color,
+      };
+      button.remove();
+      return colors;
+    });
+    assert.strictEqual(returnColors.icon, returnColors.text, '返回按钮图标应与返回文案同色');
+    assert.strictEqual(returnColors.button, returnColors.text, '返回按钮应与返回文案同色');
     console.log(JSON.stringify(result));
   } finally {
     if (browser) await browser.close();
