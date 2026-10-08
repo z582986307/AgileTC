@@ -75,6 +75,11 @@ async function main() {
     assert(states.before.outline.width < 80, '未标记节点不应为隐藏图标留出明显空白');
     assert(states.marked.progressIcon.x + states.marked.progressIcon.width <= states.marked.text.x,
       `状态图标不应遮住节点内文案：${JSON.stringify({ icon: states.marked.progressIcon, text: states.marked.text })}`);
+    assert(states.marked.progressIcon.x >= states.marked.outline.x &&
+      states.marked.progressIcon.x + states.marked.progressIcon.width <= states.marked.outline.x + states.marked.outline.width &&
+      states.marked.progressIcon.y >= states.marked.outline.y &&
+      states.marked.progressIcon.y + states.marked.progressIcon.height <= states.marked.outline.y + states.marked.outline.height,
+    `状态图标应完整处于节点内：${JSON.stringify({ icon: states.marked.progressIcon, outline: states.marked.outline })}`);
     assert.strictEqual(states.result, null, '取消标记后应清除执行结果');
     console.log(JSON.stringify(states));
   } finally {

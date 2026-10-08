@@ -1055,9 +1055,6 @@ class KityminderEditor extends Component {
                 this.initHotbox(this.minder);
               }
             }}
-            style={{
-              height: `calc(100% - 45px - ${showToolBar ? '80px' : '0px'})`,
-            }}
           >
             {loading && <Spin className="testcasemanage-loader" />}
             {minder && !loading && <MindMapScrollbars minder={minder} />}

@@ -5877,37 +5877,68 @@
         renderers: {
           right: kity.createClass('hyperlinkrender', {
             base: Renderer,
-            create: function () {
+            create: function (node) {
+              var group = new kity.Group();
               var link = new kity.HyperLink();
               var linkshape = new kity.Path();
               var outline = new kity.Rect(24, 22, -2, -6, 4).fill('rgba(255, 255, 255, 0)');
               linkshape.setPathData(linkShapePath).fill('#666');
               link.addShape(outline);
               link.addShape(linkshape);
+              group.addShape(link);
               link.setTarget('_blank');
               link.setStyle('cursor', 'pointer');
-              link
-                .on('mouseover', function () {
-                  outline.fill('rgba(255, 255, 200, .8)');
-                })
-                .on('mouseout', function () {
-                  outline.fill('rgba(255, 255, 255, 0)');
-                });
-              return link;
+              var remove = new kity.Group();
+              remove.addShape(new kity.Circle(7).fill('#fff1f0').stroke('#ff7875'));
+              remove.addShape(new kity.Path().setPathData('M-2.5,-2.5L2.5,2.5M2.5,-2.5L-2.5,2.5').stroke('#f5222d', 1.5));
+              remove.setTranslate(37, 5);
+              remove.setStyle('cursor', 'pointer');
+              remove.node.setAttribute('aria-label', '删除链接');
+              remove.node.setAttribute('data-link-remove', 'true');
+              remove.node.setAttribute('title', '删除链接');
+              remove.setVisible(false);
+              group.addShape(remove);
+              group.node.addEventListener('mouseenter', function () {
+                outline.fill('rgba(255, 255, 200, .8)');
+                remove.setVisible(true);
+              });
+              group.node.addEventListener('mouseleave', function () {
+                outline.fill('rgba(255, 255, 255, 0)');
+                remove.setVisible(false);
+              });
+              remove.on('mousedown', function (event) {
+                var minder = node.getMinder();
+                minder.select(node, true);
+                minder.execCommand('HyperLink', null, null);
+                event.stopPropagation();
+                event.preventDefault();
+              });
+              remove.on('click mouseup', function (event) {
+                event.stopPropagation();
+                event.preventDefault();
+              });
+              group.hyperlink = link;
+              return group;
             },
             shouldRender: function (node) {
               return node.getData('hyperlink');
             },
-            update: function (link, node, box) {
+            update: function (group, node, box) {
+              var link = group.hyperlink;
               var href = node.getData('hyperlink');
-              link.setHref('#');
-              var allowed = ['^http:', '^https:', '^ftp:', '^mailto:'];
-              for (var i = 0; i < allowed.length; i++) {
-                var regex = new RegExp(allowed[i]);
-                if (regex.test(href)) {
-                  link.setHref(href);
-                  break;
+              var target = typeof href === 'string' ? href.trim() : '';
+              if (/^\/\//.test(target)) target = 'https:' + target;
+              else if (target && !/^[a-z][a-z0-9+.-]*:/i.test(target)) target = 'https://' + target;
+              try {
+                var parsed = new URL(target);
+                if ((/^(https?:|ftp:)$/.test(parsed.protocol) && parsed.hostname) ||
+                    (parsed.protocol === 'mailto:' && parsed.pathname)) {
+                  link.setHref(parsed.href);
+                } else {
+                  link.node.removeAttributeNS('http://www.w3.org/1999/xlink', 'href');
                 }
+              } catch (error) {
+                link.node.removeAttributeNS('http://www.w3.org/1999/xlink', 'href');
               }
               var title = node.getData('hyperlinkTitle');
               if (title) {
@@ -5917,7 +5948,7 @@
               }
               link.node.setAttributeNS('http://www.w3.org/1999/xlink', 'title', title);
               var spaceRight = node.getStyle('space-right');
-              link.setTranslate(box.right + spaceRight + 2, -5);
+              group.setTranslate(box.right + spaceRight + 2, -5);
               return new kity.Box({
                 x: box.right + spaceRight,
                 y: -11,
@@ -7088,13 +7119,10 @@
               },
               update: function (icon, node, box) {
                 var data = node.getData(PROGRESS_DATA);
-                var spaceLeft = node.getStyle('space-left');
-                var x, y;
                 icon.setValue(data);
-                // 状态徽标贴在节点左上角，不占内容盒，也不遮挡文字或中央连接线。
-                x = box.left - icon.width - spaceLeft;
-                y = box.top - icon.height / 2;
-                icon.setTranslate(x + icon.width / 2, y + icon.height / 2);
+                // 缩入节点左侧原有留白，图标和文字都不参与重新布局。
+                icon.setScale(0.45);
+                icon.setTranslate(box.left - 6, box.cy);
                 return null;
               },
             }),

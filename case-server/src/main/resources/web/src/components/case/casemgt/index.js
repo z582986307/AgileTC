@@ -201,16 +201,16 @@ export default class CaseMgt extends React.Component {
             >
               返回
             </Button>
-            <Breadcrumb className="case-detail-breadcrumb">
-              <Breadcrumb.Item>
-                <Link className="case-list-link" to="/case/caseList/1">
-                  {casedetail ? '用例列表' : '任务列表'}
-                </Link>
-              </Breadcrumb.Item>
-              <Breadcrumb.Item>
-                {casedetail ? '用例详情' : '任务详情'}
-              </Breadcrumb.Item>
-            </Breadcrumb>
+            {casedetail && (
+              <Breadcrumb className="case-detail-breadcrumb">
+                <Breadcrumb.Item>
+                  <Link className="case-list-link" to="/case/caseList/1">
+                    用例列表
+                  </Link>
+                </Breadcrumb.Item>
+                <Breadcrumb.Item>用例详情</Breadcrumb.Item>
+              </Breadcrumb>
+            )}
           </div>
           <span className="case-detail-title">
             用例名称：
