@@ -159,6 +159,13 @@ class DoGroup extends Component {
     return !!redoDiffs.length;
   };
 
+  renderHistoryIcon = redo => (
+    <svg className={`do-group-history-icon${redo ? ' redo' : ''}`} viewBox="0 0 32 28" aria-hidden="true">
+      <path d="M8 7H20a8 8 0 1 1 0 16h-5" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
+      <path d="M9 1 3 7l6 6" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+
   updateSelection = e => {
     const { patchLock } = this.state;
     const { minder } = this.props;
@@ -192,19 +199,17 @@ class DoGroup extends Component {
           <Button
             aria-label="撤销"
             type="link"
-            icon="undo"
             onClick={this.undo}
             disabled={!hasUndo}
-            ><span className="do-group-label">撤销</span></Button>
+            >{this.renderHistoryIcon(false)}<span className="do-group-label">撤销</span></Button>
         </Tooltip>
         <Tooltip title="重做">
           <Button
             aria-label="重做"
             type="link"
             disabled={!hasRedo}
-            icon="redo"
             onClick={this.redo}
-            ><span className="do-group-label">重做</span></Button>
+            >{this.renderHistoryIcon(true)}<span className="do-group-label">重做</span></Button>
         </Tooltip>
       </div>
     );
