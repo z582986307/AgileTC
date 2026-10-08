@@ -151,6 +151,17 @@ export const createPaintGroups = minder => {
   minder.on('noderemove', removed);
 
   return {
+    getBounds() {
+      const bounds = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity };
+      groups.forEach(entry => {
+        if (!entry.nodes.length) return;
+        bounds.left = Math.min(bounds.left, entry.box.left);
+        bounds.top = Math.min(bounds.top, entry.box.top);
+        bounds.right = Math.max(bounds.right, entry.box.right);
+        bounds.bottom = Math.max(bounds.bottom, entry.box.bottom);
+      });
+      return Number.isFinite(bounds.left) ? bounds : null;
+    },
     mount(nodes) {
       const view = getView();
       [false, true].forEach(connections => {

@@ -188,7 +188,7 @@ class DoGroup extends Component {
     }
     return (
       <div className="nodes-actions do-group">
-        <Tooltip title="撤销 (Ctrl + Z)">
+        <Tooltip title="撤销">
           <Button
             aria-label="撤销"
             type="link"
@@ -197,7 +197,7 @@ class DoGroup extends Component {
             disabled={!hasUndo}
           />
         </Tooltip>
-        <Tooltip title="重做 (Ctrl + Y)">
+        <Tooltip title="重做">
           <Button
             aria-label="重做"
             type="link"

@@ -130,6 +130,37 @@ async function main() {
       return result;
     }, { nodeCount: count, mode });
     if (mode !== 'engine') {
+      await page.waitForSelector('.mindmap-scroll-track.vertical', { timeout: 5000 });
+      result.scrollbarInitiallyHidden = await page.evaluate(() => getComputedStyle(document.querySelector('.mindmap-scroll-track.vertical')).opacity === '0');
+      assert(result.scrollbarInitiallyHidden, '静止时滚动条未隐藏');
+      const scrollStart = await page.evaluate(() => ({
+        x: window.testMinder.getViewDragger().getView().left,
+        y: window.testMinder.getViewDragger().getView().top,
+      }));
+      await page.mouse.move(600, 450);
+      await page.mouse.wheel({ deltaY: 120 });
+      const axes = await page.evaluate(() => ['horizontal', 'vertical'].filter(axis => document.querySelector(`.mindmap-scroll-track.${axis}`)));
+      for (const axis of axes) {
+        const track = await page.$(`.mindmap-scroll-track.${axis}`);
+        const box = await track.boundingBox();
+        const from = axis === 'horizontal' ? { x: box.x + 12, y: box.y + box.height / 2 } : { x: box.x + box.width / 2, y: box.y + 12 };
+        const to = axis === 'horizontal' ? { x: box.x + box.width - 2, y: from.y } : { x: from.x, y: box.y + box.height - 2 };
+        await page.mouse.move(from.x, from.y);
+        await page.mouse.down();
+        await page.mouse.move(to.x, to.y, { steps: 8 });
+        await page.mouse.up();
+      }
+      result.scrollbarReachedEnds = await page.evaluate(start => {
+        const view = window.testMinder.getViewDragger().getView();
+        const bounds = window.testMinder._paintGroups.getBounds();
+        return view.top > start.y + view.height
+          && (document.querySelector('.mindmap-scroll-track.horizontal') ? view.left > start.x + view.width && Math.abs(view.right - bounds.right) < view.width / 4 : true)
+          && Math.abs(view.bottom - bounds.bottom) < view.height / 4;
+      }, scrollStart);
+      assert(result.scrollbarReachedEnds, '拖动滚动条未到达脑图右下边界');
+      await page.waitForTimeout(1300);
+      result.scrollbarAutoHidden = await page.evaluate(() => getComputedStyle(document.querySelector('.mindmap-scroll-track.vertical')).opacity === '0');
+      assert(result.scrollbarAutoHidden, '停止滑动后滚动条未隐藏');
       await page.evaluate(() => {
         const leaf = window.testMinder.getRoot().children[0].children[0];
         window.testMinder.setOption('viewAnimationDuration', 0);
@@ -141,7 +172,6 @@ async function main() {
         return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
       });
       await page.mouse.click(point.x, point.y);
-      await page.screenshot({ path: path.join(output, `${mode}-${count}-selected.png`) });
       if (mode === 'execute') {
         await page.click('.execution-result-button.danger');
         console.log(JSON.stringify(await page.evaluate(() => ({ selected: window.testMinder.getSelectedNodes().length, progress: window.__testLeaf.getData('progress'), sent: window.__sentMessages.map(m => m.name), disabled: document.querySelector('.execution-result-button.danger').disabled }))));
@@ -157,6 +187,23 @@ async function main() {
         await page.keyboard.press('Enter');
         result.textEdited = await page.evaluate(() => window.__testLeaf.getText().includes('browser-edit-check'));
         assert(result.textEdited, '实际双击编辑文本未生效');
+        const undo = await page.$('.do-group button[aria-label="撤销"]');
+        const undoBox = await undo.boundingBox();
+        await page.mouse.move(undoBox.x + undoBox.width / 2, undoBox.y + undoBox.height / 2);
+        result.undoStyle = await page.evaluate(() => {
+          const button = document.querySelector('.do-group button[aria-label="撤销"]');
+          return { disabled: button.disabled, width: Math.round(button.getBoundingClientRect().width), text: button.textContent.trim(), color: getComputedStyle(button).color };
+        });
+        assert(!result.undoStyle.disabled && result.undoStyle.width === 36 && result.undoStyle.text === '', '撤销按钮未保持可用的纯图标样式');
+        await page.mouse.down();
+        result.undoPressedColor = await page.evaluate(() => getComputedStyle(document.querySelector('.do-group button[aria-label="撤销"]')).color);
+        await page.mouse.up();
+        assert(result.undoPressedColor === 'rgb(36, 111, 255)', `点击撤销按钮时颜色为 ${result.undoPressedColor}`);
+        result.undoRevertedText = await page.evaluate(() => !window.__testLeaf.getText().includes('browser-edit-check'));
+        assert(result.undoRevertedText, '撤销按钮未执行原有撤销操作');
+        await page.click('.do-group button[aria-label="重做"]');
+        result.redoRestoredText = await page.evaluate(() => window.__testLeaf.getText().includes('browser-edit-check'));
+        assert(result.redoRestoredText, '重做按钮未执行原有重做操作');
       }
       // 跳到最远的已生成节点，再通过真实鼠标选中，验证不是只有首屏可操作。
       result.farRegionMs = await page.evaluate(async () => {
@@ -190,7 +237,6 @@ async function main() {
       result.dragMoved = await page.evaluate(previous => Math.abs(window.testMinder.getViewDragger().getMovement().y - previous) > 200, oldMovement);
       assert(result.dragMoved, '原有 Alt + 鼠标拖动交互失效');
       assert(result.farRegionMs < 500, `远区域显示延迟 ${result.farRegionMs}ms`);
-      await page.screenshot({ path: path.join(output, `${mode}-${count}.png`) });
     }
     await page.waitForTimeout(15000);
     Object.assign(result, await page.evaluate(() => window.finishPerformanceObservation()));

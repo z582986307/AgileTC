@@ -26,6 +26,7 @@ import 'hotbox-ui/hotbox';
 import 'hotbox-ui/hotbox.css';
 import DoGroup from './toolbar/DoGroup';
 import ExecutionFloatingPanels from './components/executionFloatingPanels';
+import MindMapScrollbars from './components/mindMapScrollbars';
 import ThemeGroup from './outlook/ThemeGroup';
 import TemplateGroup from './outlook/TemplateGroup';
 import ResetLayoutGroup from './outlook/ResetLayoutGroup';
@@ -1059,6 +1060,7 @@ class KityminderEditor extends Component {
             }}
           >
             {loading && <Spin className="testcasemanage-loader" />}
+            {minder && !loading && <MindMapScrollbars minder={minder} />}
           </div>
           {this.state.contextMenu && (
             <div
