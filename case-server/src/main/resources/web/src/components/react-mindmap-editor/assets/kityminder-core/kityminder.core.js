@@ -8533,10 +8533,11 @@
         });
         return {
           init: function () {
-            this._zoomValue = 100;
+            this._zoomValue = 120;
             this.setDefaultOptions({
               zoom: [10, 20, 50, 100, 200],
             });
+            this.zoom(120);
             setTextRendering();
           },
           commands: {
@@ -8549,9 +8550,6 @@
               if (!e.originEvent.ctrlKey && !e.originEvent.metaKey) return;
               var delta = e.originEvent.wheelDelta;
               var me = this;
-              if (kity.Browser.mac) {
-                delta = -delta;
-              }
               // 稀释
               if (Math.abs(delta) > 100) {
                 clearTimeout(this._wheelZoomTimeout);
@@ -8559,11 +8557,9 @@
                 return;
               }
               this._wheelZoomTimeout = setTimeout(function () {
-                var value;
-                var lastValue = me.getPaper()._zoom || 1;
-                if (delta < 0) {
+                if (delta > 0) {
                   me.execCommand('zoomin');
-                } else if (delta > 0) {
+                } else if (delta < 0) {
                   me.execCommand('zoomout');
                 }
               }, 5);

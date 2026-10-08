@@ -62,7 +62,7 @@ async function main() {
       const marked = metrics();
       minder.execCommand('Progress', undefined);
       const cleared = metrics();
-      return { before, marked, cleared, result: leaf.getData('progress') };
+      return { before, marked, cleared, zoom: minder.queryCommandValue('zoom'), result: leaf.getData('progress') };
     });
     for (const key of ['outline', 'text', 'connection', 'layout']) {
       assert.deepStrictEqual(states.marked[key], states.before[key], `${key} 标记后发生位置或尺寸变化`);
@@ -72,7 +72,7 @@ async function main() {
     assert.strictEqual(states.marked.progressVisible, true, '标记后应显示执行结果图标');
     assert.strictEqual(states.cleared.progressVisible, false, '取消标记后应隐藏执行结果图标');
     assert.strictEqual(states.before.priorityVisible, false, '无优先级数据时不应显示额外图标');
-    assert(states.before.outline.width < 80, '未标记节点不应为隐藏图标留出明显空白');
+    assert(states.before.outline.width / (states.zoom / 100) < 80, '未标记节点不应为隐藏图标留出明显空白');
     assert(states.marked.progressIcon.x + states.marked.progressIcon.width <= states.marked.text.x,
       `状态图标不应遮住节点内文案：${JSON.stringify({ icon: states.marked.progressIcon, text: states.marked.text })}`);
     assert(states.marked.progressIcon.x >= states.marked.outline.x &&

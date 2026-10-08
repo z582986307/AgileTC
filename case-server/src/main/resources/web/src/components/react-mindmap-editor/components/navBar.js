@@ -24,7 +24,7 @@ const NavBar = (props, ref) => {
   };
   if (minder) {
     minder.on('zoom', () => {
-      setZoomValue(minder.queryCommandValue('zoom'));
+      setZoomValue(Math.round(minder.queryCommandValue('zoom') / 1.2));
     });
   }
 

@@ -24,6 +24,8 @@ async function main() {
       response.end('linked target');
     } else if (request.url === '/editor') {
       response.end('<!doctype html><div id="map"></div><script src="/editor.js"></script>');
+    } else if (request.url === '/layout-editor') {
+      response.end('<!doctype html><section class="case-detail-page"><div class="case-detail-shell"><div class="case-detail-heading"></div><div class="case-detail-content" id="map"></div></div></section><script src="/editor.js"></script>');
     } else {
       response.end('<!doctype html><div id="map" style="width:1000px;height:600px"></div><script src="/kity.js"></script><script src="/core.js"></script>');
     }
@@ -93,6 +95,23 @@ async function main() {
       const child = instance && instance.minder.getRoot().children[0];
       return child && child._renderers;
     }, { timeout: 10000 });
+    const initialZoom = await editorPage.evaluate(() => ({
+      actual: window.testEditor.minder.queryCommandValue('zoom'),
+      displayed: document.querySelector('.nav-bar .zoom-text').textContent.trim(),
+    }));
+    assert.strictEqual(initialZoom.actual, 120, '当前实际 120% 应成为新默认比例');
+    assert.strictEqual(initialZoom.displayed, '100%', '新默认比例应显示 100%');
+    await editorPage.mouse.move(500, 250);
+    await editorPage.keyboard.down('Control');
+    await editorPage.mouse.wheel({ deltaY: -120 });
+    await editorPage.waitForTimeout(50);
+    const zoomedIn = await editorPage.evaluate(() => window.testEditor.minder.queryCommandValue('zoom'));
+    assert(zoomedIn > 120, `Ctrl+滚轮向上应放大: ${zoomedIn}`);
+    await editorPage.mouse.wheel({ deltaY: 120 });
+    await editorPage.keyboard.up('Control');
+    await editorPage.waitForTimeout(50);
+    const zoomedOut = await editorPage.evaluate(() => window.testEditor.minder.queryCommandValue('zoom'));
+    assert(zoomedOut < zoomedIn, 'Ctrl+滚轮向下应缩小');
     const hover = await editorPage.evaluate(() => {
       const node = window.testEditor.minder.getRoot().children[0];
       const shape = node.getRenderer('hyperlinkrender').getRenderShape().node;
@@ -145,6 +164,19 @@ async function main() {
     });
     assert(Math.abs(fullScreen.outerBottom - fullScreen.viewportBottom) <= 1, '全屏编辑器应到达视口底部');
     assert(Math.abs(fullScreen.canvasBottom - fullScreen.viewportBottom) <= 1, '全屏画布底部不应留灰色空白');
+    const layoutPage = await browser.newPage();
+    await layoutPage.setViewport({ width: 1200, height: 800 });
+    await layoutPage.goto(`${origin}/layout-editor`);
+    await layoutPage.evaluate(async () => {
+      window.layoutEditor = await window.mountTestEditor({ template: 'right', root: { data: { text: '用例' }, children: [] } }, false, {});
+    });
+    const viewportLayout = await layoutPage.evaluate(() => {
+      const rect = document.querySelector('.kityminder-core-container').getBoundingClientRect();
+      return { left: rect.left, right: rect.right, bottom: rect.bottom, viewportWidth: innerWidth, viewportHeight: innerHeight };
+    });
+    assert(Math.abs(viewportLayout.left) <= 1, '非全屏画布左侧应贴住浏览器边缘');
+    assert(Math.abs(viewportLayout.right - viewportLayout.viewportWidth) <= 1, '非全屏画布右侧应贴住浏览器边缘');
+    assert(Math.abs(viewportLayout.bottom - viewportLayout.viewportHeight) <= 1, `非全屏画布底部应贴住浏览器边缘: ${JSON.stringify(viewportLayout)}`);
     console.log(JSON.stringify(result));
   } finally {
     if (browser) await browser.close();

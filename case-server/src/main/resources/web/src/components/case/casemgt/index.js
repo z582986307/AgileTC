@@ -190,7 +190,7 @@ export default class CaseMgt extends React.Component {
           : '未设置'}`
       : '';
     return (
-      <div style={{ position: 'relative', minHeight: '80vh' }}>
+      <div className="case-detail-shell">
         <div className="case-detail-heading">
           <div className="case-detail-navigation">
             <Button
@@ -267,7 +267,6 @@ export default class CaseMgt extends React.Component {
             planCycle={planCycle}
             readOnly={readOnly}
             mediaShow={!progressShow}
-            editorStyle={{ height: 'calc(100vh - 100px)' }}
             toolbar={{
               image: true,
               theme: ['classic-compact', 'fresh-blue', 'fresh-green-compat'],

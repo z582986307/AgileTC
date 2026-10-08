@@ -146,4 +146,4 @@ export const selectedList = {
   tree: '选择子树',
 };
 // 放大缩小比例
-export const zoom = [10, 20, 30, 40, 50, 60, 80, 100, 120, 150, 180, 200];
+export const zoom = [10, 20, 30, 40, 50, 60, 80, 100, 120, 150, 180, 200].map(value => value * 1.2);

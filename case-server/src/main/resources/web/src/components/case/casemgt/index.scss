@@ -34,7 +34,21 @@
  
     overflow:hidden; white-space: nowrap; word-break:break-all;text-overflow:ellipsis;
 }
+.case-detail-page {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+}
+.case-detail-shell {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+}
 .case-detail-heading {
+    flex: 0 0 auto;
     display: grid;
     grid-template-columns: 1.4fr repeat(3, minmax(0, 1fr));
     align-items: center;
@@ -108,6 +122,15 @@
     box-shadow: none;
 }
 .case-detail-content {
-    padding: 0 12px;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
+    padding: 0;
     background: #fff;
+
+    > .kityminder-editor-container {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
 }
