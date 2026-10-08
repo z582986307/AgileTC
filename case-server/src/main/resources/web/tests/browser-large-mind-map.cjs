@@ -194,7 +194,7 @@ async function main() {
           const button = document.querySelector('.do-group button[aria-label="撤销"]');
           return { disabled: button.disabled, width: Math.round(button.getBoundingClientRect().width), text: button.textContent.trim(), color: getComputedStyle(button).color };
         });
-        assert(!result.undoStyle.disabled && result.undoStyle.width === 132 && result.undoStyle.text === '撤销', '撤销按钮未保持参考图的横向按钮样式');
+        assert(!result.undoStyle.disabled && result.undoStyle.width === 72 && result.undoStyle.text === '撤销', '撤销按钮未与保存按钮保持同尺寸');
         await page.mouse.down();
         result.undoPressedColor = await page.evaluate(() => getComputedStyle(document.querySelector('.do-group button[aria-label="撤销"]')).color);
         await page.mouse.up();

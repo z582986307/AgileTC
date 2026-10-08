@@ -10,70 +10,40 @@
   box-shadow: none;
 
   .ant-btn-link {
-    width: 132px;
-    height: 48px;
-    padding: 0 16px;
-    gap: 12px;
+    width: 72px;
+    min-width: 72px;
+    height: 32px;
+    padding: 0 7px;
+    gap: 4px;
     color: #475569;
     background: #f8fafc;
-    border: 1px solid #cbd5e1;
-    border-radius: 14px;
+    border: 2px solid #cbd5e1;
+    border-radius: 8px;
     box-shadow: none;
     transition: none;
 
     .anticon {
-      display: none;
-    }
-
-    .do-group-icon {
-      position: relative;
-      display: block;
-      flex: 0 0 24px;
-      width: 24px;
-      height: 24px;
-
-      &::before,
-      &::after {
-        position: absolute;
-        display: block;
-        content: '';
-        background: currentColor;
-      }
-
-      &::before {
-        top: 10px;
-        left: 1px;
-        width: 22px;
-        height: 4px;
-        border-radius: 3px;
-      }
-
-      &::after {
-        top: 4px;
-        left: 1px;
-        width: 13px;
-        height: 13px;
-        border-bottom: 4px solid currentColor;
-        border-left: 4px solid currentColor;
-        background: transparent;
-        transform: rotate(45deg);
-      }
-
-      &.redo {
-        transform: scaleX(-1);
-      }
+      display: inline-block;
+      margin: 0;
+      font-size: 17px;
     }
 
     .do-group-label {
-      font-size: 16px;
+      font-size: 13px;
       font-weight: 500;
       line-height: 1;
     }
 
+    &:nth-child(2) {
+      color: #246fff;
+      background: #f0f5ff;
+      border-color: #a9c8ff;
+    }
+
     &:hover {
-      color: #475569;
-      background: #fff;
-      border-color: #94a3b8;
+      color: #246fff;
+      background: #f0f5ff;
+      border-color: #a9c8ff;
       box-shadow: none;
     }
 
@@ -94,5 +64,11 @@
       border-color: #cbd5e1 !important;
       box-shadow: none;
     }
+  }
+
+  > span:nth-child(2) .ant-btn-link {
+    color: #246fff;
+    background: #f0f5ff;
+    border-color: #a9c8ff;
   }
 }
