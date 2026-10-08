@@ -10,19 +10,64 @@
   box-shadow: none;
 
   .ant-btn-link {
-    width: 36px;
-    height: 36px;
-    padding: 0;
+    width: 132px;
+    height: 48px;
+    padding: 0 16px;
+    gap: 12px;
     color: #475569;
     background: #f8fafc;
     border: 1px solid #cbd5e1;
-    border-radius: 10px;
+    border-radius: 14px;
     box-shadow: none;
     transition: none;
 
     .anticon {
-      margin: 0;
-      font-size: 18px;
+      display: none;
+    }
+
+    .do-group-icon {
+      position: relative;
+      display: block;
+      flex: 0 0 24px;
+      width: 24px;
+      height: 24px;
+
+      &::before,
+      &::after {
+        position: absolute;
+        display: block;
+        content: '';
+        background: currentColor;
+      }
+
+      &::before {
+        top: 10px;
+        left: 1px;
+        width: 22px;
+        height: 4px;
+        border-radius: 3px;
+      }
+
+      &::after {
+        top: 4px;
+        left: 1px;
+        width: 13px;
+        height: 13px;
+        border-bottom: 4px solid currentColor;
+        border-left: 4px solid currentColor;
+        background: transparent;
+        transform: rotate(45deg);
+      }
+
+      &.redo {
+        transform: scaleX(-1);
+      }
+    }
+
+    .do-group-label {
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1;
     }
 
     &:hover {
