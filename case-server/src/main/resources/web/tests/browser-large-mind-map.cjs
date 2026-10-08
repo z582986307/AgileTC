@@ -173,10 +173,28 @@ async function main() {
       });
       await page.mouse.click(point.x, point.y);
       if (mode === 'execute') {
+        const nodeGeometry = () => page.evaluate(() => {
+          const node = window.__testLeaf;
+          const box = shape => {
+            const rect = shape.node.getBoundingClientRect();
+            return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+          };
+          return {
+            outline: box(node.getRenderer('OutlineRenderer').getRenderShape()),
+            text: box(node.getRenderer('TextRenderer').getRenderShape()),
+            connection: box(node.getConnection()),
+          };
+        });
+        const beforeMark = await nodeGeometry();
         await page.click('.execution-result-button.danger');
         console.log(JSON.stringify(await page.evaluate(() => ({ selected: window.testMinder.getSelectedNodes().length, progress: window.__testLeaf.getData('progress'), sent: window.__sentMessages.map(m => m.name), disabled: document.querySelector('.execution-result-button.danger').disabled }))));
         result.markedFailed = await page.evaluate(() => window.__testLeaf.getData('progress') === 1 && window.__sentMessages.some(m => m.name === 'edit'));
         assert(result.markedFailed, '实际点击失败按钮后未产生正确结果补丁');
+        assert.deepStrictEqual(await nodeGeometry(), beforeMark, '点击失败按钮后末级节点几何发生变化');
+        await page.click('.execution-result-button.untested');
+        result.markCleared = await page.evaluate(() => window.__testLeaf.getData('progress') == null);
+        assert(result.markCleared, '实际点击未测试按钮后没有清除执行结果');
+        assert.deepStrictEqual(await nodeGeometry(), beforeMark, '点击未测试按钮后末级节点几何发生变化');
       } else {
         await page.mouse.click(point.x, point.y, { clickCount: 2 });
         await page.waitForSelector('.edit-input:not(.hide) textarea', { visible: true, timeout: 5000 });

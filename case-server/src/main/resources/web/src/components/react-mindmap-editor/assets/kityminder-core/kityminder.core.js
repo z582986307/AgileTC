@@ -6946,9 +6946,7 @@
                 return new PriorityIcon();
               },
               shouldRender: function (node) {
-                // 末级节点始终创建状态图标，未标记时仅隐藏图标。
-                // 图标作为叠加层绘制，不参与节点布局，避免标记/取消标记改变节点尺寸。
-                return node.parent && node.getChildren().length === 0;
+                return node.getData(PRIORITY_DATA);
               },
               update: function (icon, node, box) {
                 var data = node.getData(PRIORITY_DATA);
@@ -6959,7 +6957,12 @@
                 x = box.left - icon.width - spaceLeft;
                 y = -icon.height / 2;
                 icon.setTranslate(x + icon.width / 2, y + icon.height / 2);
-                return null;
+                return new kity.Box({
+                  x: x,
+                  y: y,
+                  width: icon.width,
+                  height: icon.height,
+                });
               },
             }),
           },
@@ -7088,10 +7091,11 @@
                 var spaceLeft = node.getStyle('space-left');
                 var x, y;
                 icon.setValue(data);
+                // 状态徽标贴在节点左上角，不占内容盒，也不遮挡文字或中央连接线。
                 x = box.left - icon.width - spaceLeft;
-                y = -icon.height / 2;
+                y = box.top - icon.height / 2;
                 icon.setTranslate(x + icon.width / 2, y + icon.height / 2);
-                return new kity.Box(x, y, icon.width, icon.height);
+                return null;
               },
             }),
           },
