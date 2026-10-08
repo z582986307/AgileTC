@@ -6954,7 +6954,8 @@
                   x,
                   y;
                 icon.setValue(data);
-                x = box.left - icon.width - spaceLeft;
+                // 执行结果图标嵌入末级节点左侧，保持节点边框、连接线和文字布局不变。
+                x = box.left + spaceLeft;
                 y = -icon.height / 2;
                 icon.setTranslate(x, y);
                 return new kity.Box({
