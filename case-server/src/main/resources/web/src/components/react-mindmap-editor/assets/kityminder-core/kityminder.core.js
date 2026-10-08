@@ -6958,12 +6958,9 @@
                 x = box.left + spaceLeft;
                 y = -icon.height / 2;
                 icon.setTranslate(x, y);
-                return new kity.Box({
-                  x: x,
-                  y: y,
-                  width: icon.width,
-                  height: icon.height,
-                });
+                // 图标是节点内部的叠加层，不应参与内容盒计算；否则会把末级节点的
+                // 外框、连接线和布局盒向左/向右撑开，导致标记结果后节点样式异常。
+                return null;
               },
             }),
           },

@@ -161,8 +161,8 @@ class DoGroup extends Component {
 
   renderHistoryIcon = redo => (
     <svg className={`do-group-history-icon${redo ? ' redo' : ''}`} viewBox="0 0 32 28" aria-hidden="true">
-      <path d="M8 7H20a8 8 0 1 1 0 16h-5" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" />
-      <path d="M9 1 3 7l6 6" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8 7H20a8 8 0 1 1 0 16h-5" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" />
+      <path d="M9 1 3 7l6 6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 
