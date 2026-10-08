@@ -6946,7 +6946,9 @@
                 return new PriorityIcon();
               },
               shouldRender: function (node) {
-                return node.getData(PRIORITY_DATA);
+                // 末级节点始终保留状态图标的布局空间；未标记时仅隐藏图标，
+                // 避免标记/取消标记导致节点宽度和连接线位置跳变。
+                return node.parent && node.getChildren().length === 0;
               },
               update: function (icon, node, box) {
                 var data = node.getData(PRIORITY_DATA);
