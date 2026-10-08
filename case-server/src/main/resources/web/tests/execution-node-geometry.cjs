@@ -62,11 +62,17 @@ async function main() {
       const marked = metrics();
       minder.execCommand('Progress', undefined);
       const cleared = metrics();
-      return { before, marked, cleared, zoom: minder.queryCommandValue('zoom'), result: leaf.getData('progress') };
+      minder.execCommand('HyperLink', 'https://example.com/case', '用例链接');
+      const linked = metrics();
+      minder.execCommand('HyperLink', null, null);
+      const unlinked = metrics();
+      return { before, marked, cleared, linked, unlinked, zoom: minder.queryCommandValue('zoom'), result: leaf.getData('progress') };
     });
     for (const key of ['outline', 'text', 'connection', 'layout']) {
       assert.deepStrictEqual(states.marked[key], states.before[key], `${key} 标记后发生位置或尺寸变化`);
       assert.deepStrictEqual(states.cleared[key], states.before[key], `${key} 取消标记后发生位置或尺寸变化`);
+      assert.deepStrictEqual(states.linked[key], states.before[key], `${key} 添加链接后发生位置或尺寸变化`);
+      assert.deepStrictEqual(states.unlinked[key], states.before[key], `${key} 删除链接后发生位置或尺寸变化`);
     }
     assert.strictEqual(states.before.progressVisible, false, '未标记不应显示执行结果图标');
     assert.strictEqual(states.marked.progressVisible, true, '标记后应显示执行结果图标');
