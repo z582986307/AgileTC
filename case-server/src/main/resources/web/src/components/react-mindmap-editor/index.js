@@ -531,11 +531,11 @@ class KityminderEditor extends Component {
     // }
     if (this.modal === undefined) {
       this.modal = Modal.warning({
-        title: 'Websocket通信已断开，请手动刷新页面。',
+        title: '服务已断开，请手动刷新页面',
         className: 'testcasemanage-modal ws-warning',
         getContainer: () =>
           document.getElementsByClassName('kityminder-core-container')[0],
-        okText: '知道了，立即刷新',
+        okText: '确定',
         onOk: () => {
           this.modal = undefined;
           location.reload();

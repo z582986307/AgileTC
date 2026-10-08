@@ -195,7 +195,7 @@ class DoGroup extends Component {
             icon="undo"
             onClick={this.undo}
             disabled={!hasUndo}
-            ><span className="do-group-icon" aria-hidden="true" /><span className="do-group-label">撤销</span></Button>
+            ><span className="do-group-label">撤销</span></Button>
         </Tooltip>
         <Tooltip title="重做">
           <Button
@@ -204,7 +204,7 @@ class DoGroup extends Component {
             disabled={!hasRedo}
             icon="redo"
             onClick={this.redo}
-            ><span className="do-group-icon redo" aria-hidden="true" /><span className="do-group-label">重做</span></Button>
+            ><span className="do-group-label">重做</span></Button>
         </Tooltip>
       </div>
     );
