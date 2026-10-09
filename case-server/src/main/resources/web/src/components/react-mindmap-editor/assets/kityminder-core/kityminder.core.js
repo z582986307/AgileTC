@@ -5952,7 +5952,12 @@
               link.node.setAttributeNS('http://www.w3.org/1999/xlink', 'title', title);
               var spaceRight = node.getStyle('space-right');
               group.setTranslate(box.right + spaceRight + 2, -5);
-              return null;
+              return new kity.Box({
+                x: box.right + spaceRight,
+                y: box.y,
+                width: 24,
+                height: box.height,
+              });
             },
           }),
         },

@@ -46,6 +46,7 @@ async function main() {
         const connection = leaf.getConnection().node.getBoundingClientRect();
         const priority = leaf.getRenderer('PriorityRenderer');
         const progress = leaf.getRenderer('ProgressRenderer');
+        const hyperlink = leaf.getRenderer('hyperlinkrender');
         const pick = rect => ({ x: rect.x, y: rect.y, width: rect.width, height: rect.height });
         const visible = renderer => Boolean(renderer.getRenderShape() && getComputedStyle(renderer.getRenderShape().node).display !== 'none');
         return {
@@ -54,6 +55,7 @@ async function main() {
           progressVisible: visible(progress),
           priorityVisible: visible(priority),
           progressIcon: progress.getRenderShape() ? pick(progress.getRenderShape().node.getBoundingClientRect()) : null,
+          linkIcon: visible(hyperlink) ? pick(hyperlink.getRenderShape().node.querySelector('a').getBoundingClientRect()) : null,
         };
       };
       minder.select(leaf, true);
@@ -71,9 +73,15 @@ async function main() {
     for (const key of ['outline', 'text', 'connection', 'layout']) {
       assert.deepStrictEqual(states.marked[key], states.before[key], `${key} 标记后发生位置或尺寸变化`);
       assert.deepStrictEqual(states.cleared[key], states.before[key], `${key} 取消标记后发生位置或尺寸变化`);
-      assert.deepStrictEqual(states.linked[key], states.before[key], `${key} 添加链接后发生位置或尺寸变化`);
       assert.deepStrictEqual(states.unlinked[key], states.before[key], `${key} 删除链接后发生位置或尺寸变化`);
     }
+    assert.deepStrictEqual(states.linked.text, states.before.text, '添加链接后节点文字不应移动');
+    assert.strictEqual(states.linked.outline.x, states.before.outline.x, '添加链接后节点左边框不应移动');
+    assert.strictEqual(states.linked.outline.height, states.before.outline.height, '添加链接后节点高度不应变化');
+    assert(states.linked.outline.width > states.before.outline.width, '添加链接后只应向右扩展节点边框');
+    assert(states.linked.linkIcon.x >= states.linked.outline.x &&
+      states.linked.linkIcon.x + states.linked.linkIcon.width <= states.linked.outline.x + states.linked.outline.width,
+    `链接图标应处于节点边框内：${JSON.stringify(states.linked)}`);
     assert.strictEqual(states.before.progressVisible, false, '未标记不应显示执行结果图标');
     assert.strictEqual(states.marked.progressVisible, true, '标记后应显示执行结果图标');
     assert.strictEqual(states.cleared.progressVisible, false, '取消标记后应隐藏执行结果图标');

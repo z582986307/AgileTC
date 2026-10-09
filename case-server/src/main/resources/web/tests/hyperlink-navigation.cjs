@@ -95,6 +95,19 @@ async function main() {
       const child = instance && instance.minder.getRoot().children[0];
       return child && child._renderers;
     }, { timeout: 10000 });
+    const panelLayout = await editorPage.evaluate(() => {
+      document.querySelector('.kityminder-editor-container').style.height = '720px';
+      const filter = document.querySelector('.execution-filter-panel').getBoundingClientRect();
+      const result = document.querySelector('.execution-result-panel').getBoundingClientRect();
+      const handles = [...document.querySelectorAll('.execution-panel-collapse-handle')].map(button => {
+        const rect = button.getBoundingClientRect();
+        return document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2) === button;
+      });
+      return { filterBottom: filter.bottom, resultTop: result.top, handles };
+    });
+    assert(panelLayout.filterBottom + 8 <= panelLayout.resultTop,
+      `笔记本高度下执行进度和标记结果悬浮窗不应重叠：${JSON.stringify(panelLayout)}`);
+    assert(panelLayout.handles.every(Boolean), `展开面板的收起按钮应保持可点击：${JSON.stringify(panelLayout)}`);
     const initialZoom = await editorPage.evaluate(() => ({
       actual: window.testEditor.minder.queryCommandValue('zoom'),
       displayed: document.querySelector('.nav-bar .zoom-text').textContent.trim(),

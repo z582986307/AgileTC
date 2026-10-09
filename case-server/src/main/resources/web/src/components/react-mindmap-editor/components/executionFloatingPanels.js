@@ -141,6 +141,7 @@ class ExecutionFloatingPanels extends Component {
           title="收起执行进度"
           onClick={() => this.setState({ filterCollapsed: true })}
         />
+        <div className="execution-panel-scroll-content">
         <div className="execution-plan-cycle">
           <span>计划周期</span>
           <strong>{this.props.planCycle || '未设置'}</strong>
@@ -215,6 +216,7 @@ class ExecutionFloatingPanels extends Component {
             )
           })}
         </div>
+        </div>
       </section>
     )
   }
@@ -229,7 +231,8 @@ class ExecutionFloatingPanels extends Component {
         : '__parent__'
     return (
       <React.Fragment>
-        {this.renderFilter()}
+        <div className="execution-floating-stack">
+          {this.renderFilter()}
         {this.state.resultCollapsed ? (
           <Button
             className="execution-result-rail"
@@ -249,6 +252,7 @@ class ExecutionFloatingPanels extends Component {
               title="收起标记结果"
               onClick={() => this.setState({ resultCollapsed: true })}
             />
+            <div className="execution-panel-scroll-content">
             <div className="execution-section-label">标记状态</div>
             <div className="execution-result-actions" style={getExecutionMarkGridStyle()}>
               {EXECUTION_MARK_OPTIONS.map(item => {
@@ -310,8 +314,10 @@ class ExecutionFloatingPanels extends Component {
                 保存备注
               </Button>
             </div>
+            </div>
           </section>
         )}
+        </div>
         {this.state.showLink && (
           <LinkModal
             visible
