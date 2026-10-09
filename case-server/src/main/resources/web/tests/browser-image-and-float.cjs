@@ -59,39 +59,51 @@ async function main() {
     assert.strictEqual(gap, 16, `筛选悬浮框距画布顶部 ${gap}px`);
 
     await page.click('button[aria-label="插入图片"]');
-    await page.type('input[placeholder^="必填"]', `${origin}/sample.svg`);
-    await page.click('.testcasemanage-modal .ant-modal-footer .ant-btn-primary');
-    await page.waitForFunction(url => window.testMinder.getRoot().children[0].getData('image') === url, {}, `${origin}/sample.svg`);
-    await page.waitForSelector('.testcasemanage-modal', { hidden: true });
-
-    await page.click('button[aria-label="插入图片"]');
-    await page.waitForSelector('.testcasemanage-modal .ant-radio-button-wrapper');
-    await page.evaluate(() => [...document.querySelectorAll('.ant-radio-button-wrapper')].find(item => item.textContent.includes('上传图片')).click());
+    await page.waitForSelector('.testcasemanage-modal [aria-label="上传图片"]');
+    assert.strictEqual(await page.$('.testcasemanage-modal input[placeholder^="必填"]'), null);
     const input = await page.$('.testcasemanage-modal input[type="file"]');
     await input.uploadFile(path.join(root, 'case-server/src/main/resources/web/dist/favicon.svg'));
-    await page.waitForSelector('.testcasemanage-modal .ant-upload-hint');
-    await page.waitForSelector('.testcasemanage-modal .ant-modal-footer .ant-btn-primary:not([disabled])');
-    await page.waitForTimeout(400);
-    await page.click('.testcasemanage-modal .ant-modal-footer .ant-btn-primary');
-    await page.waitForFunction(url => window.testMinder.getRoot().children[0].getData('image') === url, {}, `${origin}/upload-1.svg`);
-    await page.waitForSelector('.testcasemanage-modal', { hidden: true });
-
-    await page.click('button[aria-label="插入图片"]');
-    await page.waitForSelector('.testcasemanage-modal .ant-radio-button-wrapper');
-    await page.evaluate(() => [...document.querySelectorAll('.ant-radio-button-wrapper')].find(item => item.textContent.includes('上传图片')).click());
-    await page.evaluate(source => {
-      const file = new File([source], 'pasted.svg', { type: 'image/svg+xml' });
-      const clipboardData = new DataTransfer();
-      clipboardData.items.add(file);
-      document.querySelector('[aria-label="点击上传或粘贴图片"]').dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData }));
-    }, svg);
-    await page.waitForSelector('.testcasemanage-modal .ant-upload-hint');
+    await page.waitForFunction(url => document.querySelector('.testcasemanage-modal [aria-label="图片预览"]')?.src === url, {}, `${origin}/upload-1.svg`);
+    await page.waitForSelector('.testcasemanage-modal [aria-label="图片预览"]');
+    await page.waitForSelector('.testcasemanage-modal [aria-label="删除已选图片"]:not([disabled])');
+    await page.click('.testcasemanage-modal [aria-label="删除已选图片"]');
+    await page.waitForSelector('.testcasemanage-modal [aria-label="图片预览"]', { hidden: true });
+    const retryInput = await page.$('.testcasemanage-modal input[type="file"]');
+    await retryInput.uploadFile(path.join(root, 'case-server/src/main/resources/web/dist/favicon.svg'));
+    await page.waitForSelector('.testcasemanage-modal [aria-label="图片预览"]');
     await page.waitForSelector('.testcasemanage-modal .ant-modal-footer .ant-btn-primary:not([disabled])');
     await page.waitForTimeout(400);
     await page.click('.testcasemanage-modal .ant-modal-footer .ant-btn-primary');
     await page.waitForFunction(url => window.testMinder.getRoot().children[0].getData('image') === url, {}, `${origin}/upload-2.svg`);
-    assert.strictEqual(uploadCount, 2);
-    console.log(JSON.stringify({ floatingGapPx: gap, externalImage: true, localUpload: true, clipboardPaste: true }));
+    await page.waitForSelector('.testcasemanage-modal', { hidden: true });
+
+    await page.click('button[aria-label="插入图片"]');
+    await page.waitForSelector('.testcasemanage-modal [aria-label="粘贴图片"]');
+    await page.evaluate(source => {
+      const file = new File([source], 'pasted.svg', { type: 'image/svg+xml' });
+      const clipboardData = new DataTransfer();
+      clipboardData.items.add(file);
+      document.querySelector('[aria-label="粘贴图片"]').dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData }));
+    }, svg);
+    await page.waitForFunction(url => document.querySelector('.testcasemanage-modal [aria-label="图片预览"]')?.src === url, {}, `${origin}/upload-3.svg`);
+    await page.waitForSelector('.testcasemanage-modal [aria-label="图片预览"]');
+    await page.waitForSelector('.testcasemanage-modal [aria-label="删除已选图片"]:not([disabled])');
+    await page.click('.testcasemanage-modal [aria-label="删除已选图片"]');
+    await page.waitForSelector('.testcasemanage-modal [aria-label="图片预览"]', { hidden: true });
+    await page.evaluate(source => {
+      const file = new File([source], 'pasted-again.svg', { type: 'image/svg+xml' });
+      const clipboardData = new DataTransfer();
+      clipboardData.items.add(file);
+      document.querySelector('[aria-label="粘贴图片"]').dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData }));
+    }, svg);
+    await page.waitForFunction(url => document.querySelector('.testcasemanage-modal [aria-label="图片预览"]')?.src === url, {}, `${origin}/upload-4.svg`);
+    await page.waitForSelector('.testcasemanage-modal [aria-label="图片预览"]');
+    await page.waitForSelector('.testcasemanage-modal .ant-modal-footer .ant-btn-primary:not([disabled])');
+    await page.waitForTimeout(400);
+    await page.click('.testcasemanage-modal .ant-modal-footer .ant-btn-primary');
+    await page.waitForFunction(url => window.testMinder.getRoot().children[0].getData('image') === url, {}, `${origin}/upload-4.svg`);
+    assert.strictEqual(uploadCount, 4);
+    console.log(JSON.stringify({ floatingGapPx: gap, localUpload: true, clipboardPaste: true, deleteAndRetry: true }));
   } finally {
     if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));
