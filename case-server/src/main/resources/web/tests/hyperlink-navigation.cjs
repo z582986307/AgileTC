@@ -215,7 +215,7 @@ async function main() {
       const track = trackNode.getBoundingClientRect();
       return { outerBottom: outer.bottom, canvasBottom: canvas.bottom, navigationBottom: navigation.bottom, trackTop: track.top };
     });
-    assert(Math.abs(layout.canvasBottom - layout.outerBottom) <= 1, '普通模式画布应延伸到编辑器底部');
+    assert(Math.abs(layout.canvasBottom - layout.outerBottom) <= 1, `普通模式画布应延伸到编辑器底部：${JSON.stringify(layout)}`);
     assert(layout.navigationBottom < layout.trackTop, '横向滚动条应在缩放工具条下方');
     await editorPage.evaluate(() => window.testEditor.setState({ fullScreen: true }));
     const fullScreen = await editorPage.evaluate(() => {
@@ -253,6 +253,39 @@ async function main() {
     });
     assert.strictEqual(returnColors.icon, returnColors.text, '返回按钮图标应与返回文案同色');
     assert.strictEqual(returnColors.button, returnColors.text, '返回按钮应与返回文案同色');
+    const modalPage = await browser.newPage();
+    await modalPage.goto(`${origin}/editor`);
+    await modalPage.evaluate(async () => {
+      window.testEditor = await window.mountTestEditor({ template: 'right', root: {
+        data: { text: '用例' }, children: [{ data: { text: '链接节点' }, children: [] }],
+      } }, true);
+    });
+    await modalPage.waitForFunction(() => {
+      const instance = window.testEditor;
+      const child = instance && instance.minder.getRoot().children[0];
+      return child && child._renderers;
+    }, { timeout: 10000 });
+    await modalPage.evaluate(() => {
+      const minder = window.testEditor.minder;
+      minder.select(minder.getRoot().children[0], true);
+      minder.fire('receiverfocus');
+    });
+    await modalPage.waitForSelector('button[aria-label="插入链接"]:not([disabled])', { timeout: 10000 });
+    await modalPage.click('button[aria-label="插入链接"]');
+    await modalPage.waitForSelector('.testcasemanage-modal input[placeholder="选填：鼠标在链接上悬停时提示的文本"]', { timeout: 10000 });
+    const titleInput = '.testcasemanage-modal input[placeholder="选填：鼠标在链接上悬停时提示的文本"]';
+    const modalTitle = await modalPage.$eval('.testcasemanage-modal .ant-modal-title', node => node.textContent.trim());
+    assert.strictEqual(modalTitle, '插入链接', '链接弹窗标题应为插入链接');
+    await modalPage.click(titleInput);
+    await modalPage.keyboard.type('字');
+    const firstCount = await modalPage.$eval('.link-title-remaining', node => node.textContent.trim());
+    assert.strictEqual(firstCount, '199/200', '输入一个字后应显示剩余 199/200');
+    await modalPage.keyboard.type('字'.repeat(200));
+    const titleLimit = await modalPage.evaluate(selector => ({
+      length: document.querySelector(selector).value.length,
+      remaining: document.querySelector('.link-title-remaining').textContent.trim(),
+    }), titleInput);
+    assert.deepStrictEqual(titleLimit, { length: 200, remaining: '0/200' }, '提示文本应限制 200 字并显示剩余数量');
     console.log(JSON.stringify(result));
   } finally {
     if (browser) await browser.close();

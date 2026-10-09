@@ -16,9 +16,10 @@ const LinkModal = (props) => {
   };
   const defaultObj = props.minder.queryCommandValue('HyperLink');
   const { getFieldDecorator } = props.form;
+  const [titleLength, setTitleLength] = React.useState((defaultObj.title || '').length);
   return (
     <Modal
-      title="链接"
+      title="插入链接"
       className="testcasemanage-modal"
       visible={props.visible}
       onOk={onOk}
@@ -39,7 +40,15 @@ const LinkModal = (props) => {
         <Form.Item label="提示文本">
           {getFieldDecorator('title', {
             initialValue: defaultObj.title,
-          })(<Input placeholder="选填：鼠标在链接上悬停时提示的文本" />)}
+            rules: [{ max: 200, message: '提示文本最多 200 字' }],
+          })(
+            <Input
+              maxLength={200}
+              placeholder="选填：鼠标在链接上悬停时提示的文本"
+              onChange={event => setTitleLength(event.target.value.length)}
+              suffix={<span className="link-title-remaining">{Math.max(0, 200 - titleLength)}/200</span>}
+            />
+          )}
         </Form.Item>
       </Form>
     </Modal>
