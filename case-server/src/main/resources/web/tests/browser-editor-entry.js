@@ -18,6 +18,7 @@ window.mountTestEditor = (data, execution, editorStyle = { width: '100%', height
         wsUrl="fixture://local"
         wsParam={{ query: { caseId: 'fixture', recordId: execution ? 'fixture-record' : undefined } }}
         planCycle="浏览器隔离验收"
+        uploadUrl="/api/file/uploadAttachment"
       />,
       document.getElementById('map'),
     );

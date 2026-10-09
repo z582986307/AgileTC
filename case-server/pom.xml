@@ -206,6 +206,19 @@
 	</dependencies>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<includes>
+					<include>application*.properties</include>
+					<include>log4j2.xml</include>
+					<include>generatorConfig.xml</include>
+					<include>testcase-template.xlsx</include>
+					<include>com/**</include>
+					<include>web/dist/**</include>
+				</includes>
+			</resource>
+		</resources>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

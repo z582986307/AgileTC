@@ -1058,6 +1058,18 @@ class KityminderEditor extends Component {
           >
             {loading && <Spin className="testcasemanage-loader" />}
             {minder && !loading && <MindMapScrollbars minder={minder} />}
+            {minder && progressShow && (
+              <ExecutionFloatingPanels
+                minder={minder}
+                selectedNode={selectedNode}
+                isLock={isLock}
+                planCycle={planCycle}
+                baseUrl={this.props.baseUrl}
+                uploadUrl={this.props.uploadUrl}
+                onExecutionChange={this.handleExecutionChange}
+                onChange={() => this.forceUpdate()}
+              />
+            )}
           </div>
           {this.state.contextMenu && (
             <div
@@ -1117,18 +1129,6 @@ class KityminderEditor extends Component {
                 wsInstance={this.ws}
               />
             </div>
-          )}
-          {minder && progressShow && (
-            <ExecutionFloatingPanels
-              minder={minder}
-              selectedNode={selectedNode}
-              isLock={isLock}
-              planCycle={planCycle}
-              baseUrl={this.props.baseUrl}
-              uploadUrl={this.props.uploadUrl}
-              onExecutionChange={this.handleExecutionChange}
-              onChange={() => this.forceUpdate()}
-            />
           )}
           <NavBar ref={this.navNode} {...childProps} />
           {this.minder && noteContent && (

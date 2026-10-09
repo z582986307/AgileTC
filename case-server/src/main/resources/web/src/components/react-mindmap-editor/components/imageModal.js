@@ -1,45 +1,63 @@
 import React from 'react';
-import { Modal, Form, Input, Radio, Upload, Button, Icon } from 'antd';
+import { Modal, Form, Input, Radio, Upload, Icon, message } from 'antd';
+import { getUploadedImageUrl, getClipboardImage } from './imageUpload';
 
 const ImageModal = (props) => {
   const defaultObj = props.minder.queryCommandValue('Image');
-  const { getFieldDecorator, getFieldValue, setFieldsValue } = props.form;
+  const { getFieldDecorator, getFieldValue } = props.form;
   const { baseUrl = '', uploadUrl = '' } = props;
+  const [uploadedUrl, setUploadedUrl] = React.useState('');
+  const [busy, setBusy] = React.useState(false);
+
+  const uploadImage = file => {
+    const data = new FormData();
+    data.append('file', file);
+    return fetch(baseUrl + uploadUrl, {
+      method: 'POST',
+      credentials: 'include',
+      body: data,
+    }).then(response => {
+      if (!response.ok) throw new Error('图片上传失败，请重试');
+      return response.json();
+    }).then(getUploadedImageUrl);
+  };
+
+  const checkImage = url => new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = resolve;
+    image.onerror = () => reject(new Error('图片地址无法加载，请确认地址指向图片文件'));
+    image.src = url;
+  });
 
   const onOk = () => {
     const { form, minder, onCancel } = props;
-    form.validateFields((err, values) => {
+    const fields = getFieldValue('type') === 'upload' ? ['type', 'title'] : ['type', 'url', 'title'];
+    form.validateFields(fields, (err, values) => {
       if (err) {
         console.log('Received values of form: ', values);
         return;
       }
-      const params = { ...values };
-      minder.execCommand('image', params.url, params.title);
-      setTimeout(() => {
-        onCancel();
-      }, 300);
+      const url = values.type === 'upload' ? uploadedUrl : values.url;
+      if (!url) {
+        message.error(values.type === 'upload' ? '请先上传或粘贴图片' : '请输入图片地址');
+        return;
+      }
+      setBusy(true);
+      checkImage(url).then(() => {
+        minder.execCommand('image', url, values.title);
+        setTimeout(onCancel, 300);
+      }).catch(error => message.error(error.message)).then(() => setBusy(false));
     });
   };
-  const normFile = (e) => {
-    if (Array.isArray(e)) {
-      return e;
-    }
-    if (e) {
-      const fileList = e.file.status === 'removed' ? [] : [e.file];
-      return e && fileList;
-    }
-  };
-  const onImageChange = (e) => {
-    if (e.file.status === 'done') {
-      const { response = {} } = e.file;
-      setFieldsValue({ url: response.data ? response.data[0].url : '' });
-    }
-  };
-  const onTypeChange = (value) => {
-    if (value === 'upload') {
-      getFieldDecorator('url');
-    }
-    return value;
+  const onPaste = event => {
+    const file = getClipboardImage(event.clipboardData);
+    if (!file) return;
+    event.preventDefault();
+    setBusy(true);
+    uploadImage(file).then(url => {
+      setUploadedUrl(url);
+      message.success('图片已粘贴并上传');
+    }).catch(error => message.error(error.message)).then(() => setBusy(false));
   };
 
   return (
@@ -49,12 +67,13 @@ const ImageModal = (props) => {
       visible={props.visible}
       onOk={onOk}
       onCancel={props.onCancel}
+      confirmLoading={busy}
+      okButtonProps={{ disabled: busy }}
     >
       <Form layout="vertical">
         <Form.Item>
           {getFieldDecorator('type', {
             initialValue: 'out',
-            normalize: onTypeChange,
           })(
             <Radio.Group>
               <Radio.Button value="out">外链图片</Radio.Button>
@@ -76,23 +95,27 @@ const ImageModal = (props) => {
           </Form.Item>
         ) : (
           <Form.Item label="上传图片">
-            {getFieldDecorator('upload', {
-              rules: [{ required: true, message: '请上传图片！' }],
-              valuePropName: 'fileList',
-              normalize: normFile,
-            })(
-              <Upload
-                action={baseUrl + uploadUrl}
-                listType="picture"
+            <div tabIndex={0} onPaste={onPaste} aria-label="点击上传或粘贴图片">
+              <Upload.Dragger
                 accept="image/*"
-                withCredentials
-                onChange={onImageChange}
+                showUploadList={false}
+                disabled={busy}
+                customRequest={({ file, onSuccess, onError }) => {
+                  setBusy(true);
+                  uploadImage(file).then(url => {
+                    setUploadedUrl(url);
+                    onSuccess({ success: 1, data: [{ url }] });
+                  }).catch(error => {
+                    message.error(error.message);
+                    onError(error);
+                  }).then(() => setBusy(false));
+                }}
               >
-                <Button>
-                  <Icon type="upload" /> 点击上传
-                </Button>
-              </Upload>
-            )}
+                <p className="ant-upload-drag-icon"><Icon type="inbox" /></p>
+                <p className="ant-upload-text">点击上传，或在此按 Ctrl+V 粘贴图片</p>
+                {uploadedUrl && <p className="ant-upload-hint">图片已上传</p>}
+              </Upload.Dragger>
+            </div>
           </Form.Item>
         )}
 
