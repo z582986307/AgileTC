@@ -69,7 +69,7 @@ class DoGroup extends Component {
   };
 
   // 撤销
-  undo = notifyInfo => {
+  undo = (notifyInfo = {}) => {
     this.notifyInfo = notifyInfo;
     this.setState({ patchLock: true }, () => {
       console.log('notifyInfo', this.notifyInfo);
@@ -93,7 +93,7 @@ class DoGroup extends Component {
     });
   };
   // 重做
-  redo = notifyInfo => {
+  redo = (notifyInfo = {}) => {
     this.notifyInfo = notifyInfo;
     this.setState({ patchLock: true }, () => {
       const { minder } = this.props;
@@ -195,17 +195,19 @@ class DoGroup extends Component {
     }
     return (
       <div className="nodes-actions do-group">
-        <Tooltip title="撤销">
+        <Tooltip title="撤销（Ctrl+Z）">
           <Button
             aria-label="撤销"
+            title="撤销（Ctrl+Z）"
             type="link"
             onClick={this.undo}
             disabled={!hasUndo}
             >{this.renderHistoryIcon(false)}<span className="do-group-label">撤销</span></Button>
         </Tooltip>
-        <Tooltip title="重做">
+        <Tooltip title="重做（Ctrl+Y）">
           <Button
             aria-label="重做"
+            title="重做（Ctrl+Y）"
             type="link"
             disabled={!hasRedo}
             onClick={this.redo}

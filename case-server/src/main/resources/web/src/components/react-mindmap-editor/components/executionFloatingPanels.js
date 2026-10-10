@@ -1,7 +1,7 @@
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { Button, Input, message, Tooltip } from 'antd'
-import { ImageModal, LinkModal } from './index'
+import { LinkModal } from './index'
 import {
   EXECUTION_FILTER_OPTIONS,
   EXECUTION_MARK_OPTIONS,
@@ -36,7 +36,6 @@ class ExecutionFloatingPanels extends Component {
   state = {
     filterCollapsed: false,
     resultCollapsed: false,
-    showImage: false,
     showLink: false,
     note: getNodeNote(this.props.selectedNode),
     executionIndex: createExecutionResultIndex(this.props.minder.getRoot()),
@@ -290,15 +289,6 @@ class ExecutionFloatingPanels extends Component {
                     onClick={() => this.setState({ showLink: true })}
                   />
                 </Tooltip>
-                <Tooltip title="插入图片">
-                  <Button
-                    type="link"
-                    icon="picture"
-                    disabled={noteDisabled}
-                    aria-label="插入图片"
-                    onClick={() => this.setState({ showImage: true })}
-                  />
-                </Tooltip>
                 <em>{this.state.note.length}/500</em>
               </div>
             </div>
@@ -324,15 +314,6 @@ class ExecutionFloatingPanels extends Component {
             visible
             minder={this.props.minder}
             onCancel={() => this.setState({ showLink: false })}
-          />
-        )}
-        {this.state.showImage && (
-          <ImageModal
-            visible
-            minder={this.props.minder}
-            baseUrl={this.props.baseUrl}
-            uploadUrl={this.props.uploadUrl}
-            onCancel={() => this.setState({ showImage: false })}
           />
         )}
       </React.Fragment>

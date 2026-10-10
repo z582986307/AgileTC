@@ -13,3 +13,16 @@ export const getClipboardImage = clipboardData => {
   }
   return null
 }
+
+export const uploadImage = (file, baseUrl = '', uploadUrl = '') => {
+  const data = new FormData()
+  data.append('file', file)
+  return fetch(baseUrl + uploadUrl, {
+    method: 'POST',
+    credentials: 'include',
+    body: data,
+  }).then(response => {
+    if (!response.ok) throw new Error('图片上传失败，请重试')
+    return response.json()
+  }).then(getUploadedImageUrl)
+}

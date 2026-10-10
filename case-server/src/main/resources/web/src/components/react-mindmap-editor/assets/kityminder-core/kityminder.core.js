@@ -6128,6 +6128,18 @@
           base: Command,
           execute: function (km, url, title) {
             var nodes = km.getSelectedNodes();
+            if (!url) {
+              nodes.forEach(function (node) {
+                node.setData('image', null);
+                node.setData('imageTitle', null);
+                node.setData('imageSize', null);
+                node.render();
+              });
+              km.fire('saveScene');
+              km.layout(300);
+              km.fire('contentchange');
+              return;
+            }
             loadImageSize(url, function (width, height) {
               nodes.forEach(function (n) {
                 var size = fitImageSize(

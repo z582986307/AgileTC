@@ -5,7 +5,7 @@ import Editor from '../src/components/react-mindmap-editor';
 import '../src/components/case/casemgt/index.scss';
 
 // 真实编辑器，只有网络边界替换成隔离传输，禁止写入真实执行记录。
-window.mountTestEditor = (data, execution, editorStyle = { width: '100%', height: '900px' }) => {
+window.mountTestEditor = (data, execution, editorStyle = { width: '100%', height: '900px' }, readOnly = false) => {
   window.__fixtureData = data;
   window.__sentMessages = [];
   return new Promise(resolve => {
@@ -15,6 +15,7 @@ window.mountTestEditor = (data, execution, editorStyle = { width: '100%', height
         type="edit"
         editorStyle={editorStyle}
         progressShow={execution}
+        readOnly={readOnly}
         wsUrl="fixture://local"
         wsParam={{ query: { caseId: 'fixture', recordId: execution ? 'fixture-record' : undefined } }}
         planCycle="浏览器隔离验收"

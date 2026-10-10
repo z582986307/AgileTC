@@ -1,10 +1,11 @@
 import MimeType from './mimetype';
 import { guid } from '../util';
+import { getClipboardImage } from '../components/imageUpload';
 let beforeCopy = null;
 let beforeCut = null;
 let beforePaste = null;
 
-const ClipboardRuntime = (minder, readOnly) => {
+const ClipboardRuntime = (minder, readOnly, onPasteImage) => {
   let _selectedNodes = [];
   const Data = window.kityminder.data;
   const decode = Data.getRegisterProtocol('json').decode;
@@ -113,6 +114,16 @@ const ClipboardRuntime = (minder, readOnly) => {
     }
   };
   beforePaste = (e) => {
+    const pastedImage = getClipboardImage(e.clipboardData);
+    const selectedNodes = minder.getSelectedNodes();
+    const hasDialog = document.getElementsByClassName('testcasemanage-modal').length > 0 ||
+      document.getElementsByClassName('testcasemanage-note-drawer').length > 0;
+    if (!readOnly && !hasDialog && pastedImage && selectedNodes.length === 1 &&
+        (window.showEdit || isActive(e))) {
+      e.preventDefault();
+      onPasteImage(pastedImage, selectedNodes[0]);
+      return;
+    }
     if (isActive(e) && !readOnly) {
       if (minder.getStatus() !== 'normal') {
         e.preventDefault();
@@ -151,18 +162,6 @@ const ClipboardRuntime = (minder, readOnly) => {
         minder.select(_selectedNodes, true);
         _selectedNodes = [];
         minder.refresh();
-      } else if (
-        clipBoardEvent.clipboardData &&
-        clipBoardEvent.clipboardData.items[0].type.indexOf('image') > -1
-      ) {
-        let imageFile = clipBoardEvent.clipboardData.items[0].getAsFile();
-        let serverService = angular.element(document.body).injector().get('server');
-        return serverService.uploadImage(imageFile).then(function (json) {
-          let resp = json.data;
-          if (resp.errno === 0) {
-            minder.execCommand('image', resp.data.url);
-          }
-        });
       } else {
         sNodes.forEach(function (node) {
           minder.Text2Children(node, textData);

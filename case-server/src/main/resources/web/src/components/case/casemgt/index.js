@@ -1,14 +1,13 @@
 /* eslint-disable */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Breadcrumb, Row, Button, Col, message, Tooltip } from 'antd';
+import { Row, Button, Col, message, Tooltip } from 'antd';
 import './index.scss';
 import request from '@/utils/axios';
 import getQueryString from '@/utils/getCookies';
 import moment from 'moment';
 import { getSocketUrl } from '../../react-mindmap-editor/util/socketUrl';
 import TestCaseManageEditor from '../../react-mindmap-editor';
-import Link from 'umi/link';
 
 const getCookies = getQueryString.getCookie;
 /* global staffNamePY */
@@ -201,16 +200,6 @@ export default class CaseMgt extends React.Component {
             >
               返回
             </Button>
-            {casedetail && (
-              <Breadcrumb className="case-detail-breadcrumb">
-                <Breadcrumb.Item>
-                  <Link className="case-list-link" to="/case/caseList/1">
-                    用例列表
-                  </Link>
-                </Breadcrumb.Item>
-                <Breadcrumb.Item>用例详情</Breadcrumb.Item>
-              </Breadcrumb>
-            )}
           </div>
           <span className="case-detail-title">
             用例名称：

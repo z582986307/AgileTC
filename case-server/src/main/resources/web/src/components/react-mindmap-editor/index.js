@@ -11,6 +11,7 @@ import {
   Input,
   Button,
   Icon,
+  message,
   notification,
   Modal,
   Spin,
@@ -26,6 +27,8 @@ import 'hotbox-ui/hotbox';
 import 'hotbox-ui/hotbox.css';
 import DoGroup from './toolbar/DoGroup';
 import ExecutionFloatingPanels from './components/executionFloatingPanels';
+import ImageModal from './components/imageModal';
+import { uploadImage } from './components/imageUpload';
 import MindMapScrollbars from './components/mindMapScrollbars';
 import ThemeGroup from './outlook/ThemeGroup';
 import TemplateGroup from './outlook/TemplateGroup';
@@ -95,6 +98,8 @@ class KityminderEditor extends Component {
       nowUseList: [],
       wsConnected: false,
       contextMenu: null,
+      hoverImage: null,
+      showEditImage: false,
     };
     this.base = -1;
     this.expectedBase = -1;
@@ -103,22 +108,18 @@ class KityminderEditor extends Component {
         this.setState({
           minder: this.minder,
         });
-        clipboardRuntime.init(this.minder, this.props.readOnly);
+        clipboardRuntime.init(this.minder, this.props.readOnly, this.handlePasteImage);
       }
     }, 100);
     this.navNode = createRef();
   }
   componentDidMount() {
     document.addEventListener('mousedown', this.handleContextDismiss);
-    setTimeout(() => {
-      if (!this.props.readOnly) {
-        this.arguments = arguments;
-        this.initKeyBoardEvent(arguments);
-      }
-    }, 1000);
+    this.initKeyBoardEvent();
     this.initData = initData;
   }
   componentWillUnmount() {
+    window.showEdit = false;
     cancelMindMapImport(this.minder);
     if (this.minder && this.minder._paintGroups) this.minder._paintGroups.dispose();
     window.minderData = undefined;
@@ -145,9 +146,7 @@ class KityminderEditor extends Component {
   };
   // 键盘事件的监听
   initKeyBoardEvent = () => {
-    setTimeout(() => {
-      document.addEventListener('keydown', this.handleKeyDown);
-    }, 300);
+    document.addEventListener('keydown', this.handleKeyDown);
   };
   initOnEvent = minder => {
     minder.on('progressiveimportstart', () => this.setState({ loading: true }));
@@ -233,6 +232,43 @@ class KityminderEditor extends Component {
     });
 
     minder.on('contentchange', this.sendPatch);
+    if (!readOnly) minder.on('mousemove', this.handleImageHover);
+  };
+  handlePasteImage = (file, node) => {
+    if (this.state.isLock) return;
+    uploadImage(file, this.props.baseUrl, this.props.uploadUrl).then(url => {
+      if (!this.minder || !node || this.state.isLock) return;
+      this.minder.select(node, true);
+      this.minder.execCommand('image', url);
+    }).catch(error => message.error(error.message));
+  };
+  handleImageHover = event => {
+    if (this.state.isLock) return;
+    const shape = event.kityEvent && event.kityEvent.targetShape;
+    if (!shape || shape.__KityClassName !== 'Image' || !shape.url) {
+      if (this.state.hoverImage) this.setState({ hoverImage: null });
+      return;
+    }
+    const node = event.getTargetNode();
+    const target = event.originEvent && event.originEvent.target;
+    if (!node || !target || !this.editorContainer) return;
+    const imageRect = target.getBoundingClientRect();
+    const containerRect = this.editorContainer.getBoundingClientRect();
+    const x = imageRect.right - containerRect.left - 12;
+    const y = imageRect.top - containerRect.top - 12;
+    const current = this.state.hoverImage;
+    if (!current || current.node !== node || Math.abs(current.x - x) > 1 || Math.abs(current.y - y) > 1) {
+      this.setState({ hoverImage: { node, x, y } });
+    }
+  };
+  handleDeleteImage = event => {
+    event.preventDefault();
+    event.stopPropagation();
+    const hoverImage = this.state.hoverImage;
+    if (!hoverImage || this.state.isLock) return;
+    this.setState({ hoverImage: null });
+    this.minder.select(hoverImage.node, true);
+    this.minder.execCommand('image', null);
   };
   initHotbox = minder => {
     const { priority = [1, 2, 3], readOnly = false } = this.props;
@@ -331,23 +367,42 @@ class KityminderEditor extends Component {
   //   this.setState({ undoCnt: undoCnt + 1, redoCnt: redoCnt - 1 });
   // };
   handleKeyDown = event => {
-    // eslint-disable-next-line
-    let e = event || window.event || this.arguments.callee.caller.arguments[0]; //事件
-    const ctrlKey = window.event.metaKey || window.event.ctrlKey;
+    const e = event;
+    const ctrlKey = e.metaKey || e.ctrlKey;
     const hasModal =
       document.getElementsByClassName('testcasemanage-modal').length > 0;
     const { showEdit, selectedNode, inputContent } = this.state;
     const hasDrawer =
       document.getElementsByClassName('testcasemanage-note-drawer').length > 0;
-    const isRefresh = ctrlKey && window.event.keyCode === 82;
+    const isRefresh = ctrlKey && e.keyCode === 82;
+    const typing = e.target && e.target.closest && e.target.closest('input, textarea, [contenteditable="true"]');
+    if (ctrlKey && (e.keyCode === 90 || e.keyCode === 89) &&
+        !hasModal && !hasDrawer && !showEdit && !typing &&
+        !window.search && !window.tagInput && this.groupNode) {
+      e.preventDefault();
+      if (e.keyCode === 90) this.groupNode.undo({});
+      else this.groupNode.redo({});
+      return;
+    }
+    if (this.props.readOnly) return;
+    if (!showEdit && e.keyCode === 13 &&
+        Date.now() - (this.lastCompositionEndAt || 0) < 80) return;
+    const directTextKey = e.keyCode === 229 ||
+      (typeof e.key === 'string' && e.key.length === 1 && !ctrlKey && !e.altKey);
+    if (directTextKey && selectedNode && !showEdit && !typing && !hasModal &&
+        !hasDrawer && !window.search && !window.tagInput && !this.state.isLock) {
+      if (e.keyCode !== 229) e.preventDefault();
+      this.handleShowInput(e.keyCode === 229 ? '' : e.key);
+      return;
+    }
     // comm + s 保存
-    if (ctrlKey && window.event.keyCode === 83 && this.props.onSave) {
+    if (ctrlKey && e.keyCode === 83 && this.props.onSave) {
       e.preventDefault();
       this.props.onSave(this.minder.exportJson());
       // message.info('保存成功！');
     }
     // comm + f 搜索
-    if (ctrlKey && window.event.keyCode === 70) {
+    if (ctrlKey && e.keyCode === 70) {
       e.preventDefault();
       this.setState({ activeTab: '3' });
     }
@@ -361,7 +416,7 @@ class KityminderEditor extends Component {
       !window.tagInput
     ) {
       // ctrl + a 全选
-      if (ctrlKey && window.event.keyCode === 65) {
+      if (ctrlKey && e.keyCode === 65) {
         e.preventDefault();
         let selection = [];
         this.minder.getRoot().traverse(node => {
@@ -382,48 +437,33 @@ class KityminderEditor extends Component {
         //   e.preventDefault();
         //   this.minder.execCommand('Paste');
         // }
-        if ([13, 9].indexOf(window.event.keyCode) > -1) {
+        if ([13, 9].indexOf(e.keyCode) > -1) {
           const parentClass =
             document.activeElement.parentNode.parentNode.className || '';
           if (
-            window.event.keyCode === 13 &&
+            e.keyCode === 13 &&
             parentClass.indexOf('resource-input') < 0
           ) {
             e.preventDefault();
             this.minder.execCommand('AppendSiblingNode', '分支主题');
             setTimeout(this.handleShowInput, 300);
           }
-          if (window.event.keyCode === 9) {
+          if (e.keyCode === 9) {
             e.preventDefault();
             this.minder.execCommand('AppendChildNode', '分支主题');
             setTimeout(this.handleShowInput, 300);
           }
         }
-        if (window.event.keyCode === 8) {
+        if (e.keyCode === 8) {
           e.preventDefault();
           this.minder.execCommand('RemoveNode');
-        }
-      }
-      if (this.groupNode) {
-        if (ctrlKey && window.event.keyCode === 90) {
-          // this.expectedBase = this.minder.getBase() - 1;
-          // this.handleUndo();
-          console.log('begin undo')
-          e.preventDefault();
-          
-          this.groupNode.undo();
-        }
-        if (ctrlKey && window.event.keyCode === 89) {
-          // this.expectedBase = this.minder.getBase() + 1;
-          // this.handleRedo();
-          e.preventDefault();
-          this.groupNode.redo();
         }
       }
     }
     if (showEdit) {
       // 显示编辑框时，shift+回车=换行
-      if (window.event.keyCode === 13 && !window.event.shiftKey) {
+      if (e.keyCode === 13 && !e.shiftKey && !e.isComposing && !this.composing &&
+          Date.now() - (this.lastCompositionEndAt || 0) > 80) {
         e.preventDefault();
         selectedNode.setText(inputContent);
         // this.minder.setStatus('readonly');
@@ -493,19 +533,38 @@ class KityminderEditor extends Component {
     return patches;
   };
 
-  handleShowInput = () => {
+  handleShowInput = replacementText => {
     const { minder, inputNode } = this;
     if (minder.getSelectedNode() && minder.getStatus() !== 'readonly') {
       const node = minder.getSelectedNode();
-      this.setState({ showEdit: true, inputContent: node.getText() }, () => {
+      const inputContent = typeof replacementText === 'string' ? replacementText : node.getText();
+      this.directReplace = typeof replacementText === 'string';
+      this.lastCompositionEndAt = 0;
+      this.setState({ showEdit: true, inputContent }, () => {
         window.showEdit = true;
         editInput(node, inputNode);
-        document.getElementsByClassName('edit-input')[0].children[0].select();
+        const textBox = node.getRenderBox('TextRenderer') || node.getRenderBox();
+        inputNode.style.width = `${Math.max(48, Math.ceil(textBox.width) + 12)}px`;
+        inputNode.style.height = `${Math.max(30, Math.ceil(textBox.height) + 8)}px`;
+        const input = inputNode.querySelector('textarea');
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
       });
     }
   };
   handleInputChange = e => {
     this.setState({ inputContent: e.target.value });
+  };
+  commitInputText = value => {
+    const node = this.state.selectedNode || this.minder.getSelectedNode();
+    if (!node) return;
+    node.setText(value);
+    node.render();
+    this.minder.layout()._interactChange();
+    this.minder.fire('contentchange');
+    this.directReplace = false;
+    window.showEdit = false;
+    this.setState({ showEdit: false, inputContent: null });
   };
   handleNotePreview = e => {
     if (e) {
@@ -1071,6 +1130,20 @@ class KityminderEditor extends Component {
               />
             )}
           </div>
+          {!readOnly && this.state.hoverImage && (
+            <button
+              type="button"
+              className="mindmap-node-image-delete"
+              aria-label="删除节点图片"
+              title="删除图片"
+              style={{ left: this.state.hoverImage.x, top: this.state.hoverImage.y }}
+              onMouseLeave={() => this.setState({ hoverImage: null })}
+              onMouseDown={event => event.stopPropagation()}
+              onClick={this.handleDeleteImage}
+            >
+              <Icon type="close" />
+            </button>
+          )}
           {this.state.contextMenu && (
             <div
               ref={node => (this.contextMenuRef = node)}
@@ -1128,7 +1201,27 @@ class KityminderEditor extends Component {
                 {...childProps}
                 wsInstance={this.ws}
               />
+              {!readOnly && (
+                <Tooltip title="插入图片">
+                  <Button
+                    type="link"
+                    icon="picture"
+                    aria-label="插入图片"
+                    disabled={!selectedNode || isLock}
+                    onClick={() => this.setState({ showEditImage: true })}
+                  >插入图片</Button>
+                </Tooltip>
+              )}
             </div>
+          )}
+          {this.state.showEditImage && (
+            <ImageModal
+              visible
+              minder={minder}
+              baseUrl={this.props.baseUrl}
+              uploadUrl={this.props.uploadUrl}
+              onCancel={() => this.setState({ showEditImage: false })}
+            />
           )}
           <NavBar ref={this.navNode} {...childProps} />
           {this.minder && noteContent && (
@@ -1148,6 +1241,20 @@ class KityminderEditor extends Component {
                 rows={1}
                 value={inputContent || ''}
                 onChange={this.handleInputChange}
+                onCompositionStart={() => { this.composing = true; }}
+                onCompositionEnd={() => {
+                  this.composing = false;
+                  this.lastCompositionEndAt = Date.now();
+                  if (this.directReplace) {
+                    const input = this.inputNode.querySelector('textarea');
+                    if (input.value) this.commitInputText(input.value);
+                    else {
+                      this.directReplace = false;
+                      window.showEdit = false;
+                      this.setState({ showEdit: false, inputContent: null });
+                    }
+                  }
+                }}
                 onBlur={() => {
                   // minder.setStatus('readonly');
                   if (selectedNode) selectedNode.render();
@@ -1155,9 +1262,8 @@ class KityminderEditor extends Component {
                   // this.minder.setStatus('normal');
                   minder.fire('contentchange');
                 }}
-                style={{ minWidth: 300 }}
+                style={{ width: '100%', height: '100%' }}
                 autoFocus
-                autoSize
               />
             </div>
           )}

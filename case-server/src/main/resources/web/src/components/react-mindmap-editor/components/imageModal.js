@@ -1,6 +1,6 @@
 import React from 'react';
 import { Modal, Form, Input, Upload, Icon, Button, message } from 'antd';
-import { getUploadedImageUrl, getClipboardImage } from './imageUpload';
+import { uploadImage, getClipboardImage } from './imageUpload';
 
 const ImageModal = (props) => {
   const defaultObj = props.minder.queryCommandValue('Image');
@@ -11,19 +11,6 @@ const ImageModal = (props) => {
   const [titleLength, setTitleLength] = React.useState((defaultObj.title || '').length);
   const [uploadVersion, setUploadVersion] = React.useState(0);
   const uploadSequence = React.useRef(0);
-
-  const uploadImage = file => {
-    const data = new FormData();
-    data.append('file', file);
-    return fetch(baseUrl + uploadUrl, {
-      method: 'POST',
-      credentials: 'include',
-      body: data,
-    }).then(response => {
-      if (!response.ok) throw new Error('图片上传失败，请重试');
-      return response.json();
-    }).then(getUploadedImageUrl);
-  };
 
   const checkImage = url => new Promise((resolve, reject) => {
     const image = new Image();
@@ -52,7 +39,7 @@ const ImageModal = (props) => {
   const selectImage = (file, success) => {
     const sequence = ++uploadSequence.current;
     setBusy(true);
-    uploadImage(file).then(url => checkImage(url).then(() => url)).then(url => {
+    uploadImage(file, baseUrl, uploadUrl).then(url => checkImage(url).then(() => url)).then(url => {
       if (sequence !== uploadSequence.current) return;
       setUploadedUrl(url);
       if (success) success({ success: 1, data: [{ url }] });
