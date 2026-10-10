@@ -358,6 +358,74 @@
   }
 }
 
+.execution-filter-shell,
+.execution-result-shell {
+  position: relative;
+  flex: 0 1 auto;
+  width: 100%;
+  min-height: 0;
+  pointer-events: none;
+
+  > .execution-filter-panel:not(.execution-panel-hidden),
+  > .execution-result-panel:not(.execution-panel-hidden),
+  > .execution-filter-rail,
+  > .execution-result-rail {
+    pointer-events: auto;
+  }
+}
+
+.execution-result-shell {
+  margin-top: auto;
+}
+
+.execution-panel-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.mindmap-image-preview {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.mindmap-image-preview-img {
+  display: block;
+  max-width: 100%;
+  max-height: 180px;
+  object-fit: contain;
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+}
+
+.mindmap-image-preview-delete.ant-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  color: #f04438;
+  background: #fff;
+  border-color: #fecaca;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+
+  &:hover,
+  &:focus {
+    color: #d92d20;
+    background: #fff1f0;
+    border-color: #f04438;
+  }
+}
+
+.execution-floating-stack .execution-filter-shell .execution-filter-rail,
+.execution-floating-stack .execution-result-shell .execution-result-rail {
+  position: absolute;
+  top: 9px;
+  right: 0;
+  bottom: auto;
+}
+
 .execution-panel-header {
   display: flex;
   gap: 10px;

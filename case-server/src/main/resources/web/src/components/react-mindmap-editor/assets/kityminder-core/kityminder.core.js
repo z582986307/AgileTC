@@ -6065,7 +6065,7 @@
             this.viewer = new ImageViewer();
           },
           events: {
-            'normal.dblclick': function (e) {
+            'normal.click readonly.click': function (e) {
               var shape = e.kityEvent.targetShape;
               if (shape.__KityClassName === 'Image' && shape.url) {
                 this.viewer.open(shape.url);

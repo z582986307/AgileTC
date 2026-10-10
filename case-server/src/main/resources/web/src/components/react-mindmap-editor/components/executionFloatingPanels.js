@@ -119,8 +119,9 @@ class ExecutionFloatingPanels extends Component {
   renderFilter() {
     const counts = this.state.executionIndex.counts
     const progress = getExecutionProgress(counts)
-    if (this.state.filterCollapsed) {
-      return (
+    return (
+      <div className="execution-filter-shell">
+        {this.state.filterCollapsed && (
         <Button
           className="execution-filter-rail"
           icon={PANEL_TOGGLE_ICONS.collapsed}
@@ -130,10 +131,8 @@ class ExecutionFloatingPanels extends Component {
         >
           执行进度
         </Button>
-      )
-    }
-    return (
-      <section className="execution-filter-panel" aria-label="计划周期与执行进度">
+        )}
+      <section className={`execution-filter-panel${this.state.filterCollapsed ? ' execution-panel-hidden' : ''}`} aria-label="计划周期与执行进度">
         <Button
           className="execution-panel-collapse-handle"
           icon={PANEL_TOGGLE_ICONS.expanded}
@@ -218,6 +217,7 @@ class ExecutionFloatingPanels extends Component {
         </div>
         </div>
       </section>
+      </div>
     )
   }
   render() {
@@ -233,7 +233,8 @@ class ExecutionFloatingPanels extends Component {
       <React.Fragment>
         <div className="execution-floating-stack">
           {this.renderFilter()}
-        {this.state.resultCollapsed ? (
+        <div className="execution-result-shell">
+        {this.state.resultCollapsed && (
           <Button
             className="execution-result-rail"
             icon={PANEL_TOGGLE_ICONS.collapsed}
@@ -243,8 +244,8 @@ class ExecutionFloatingPanels extends Component {
           >
             标记结果
           </Button>
-        ) : (
-          <section className="execution-result-panel" aria-label="执行结果">
+        )}
+          <section className={`execution-result-panel${this.state.resultCollapsed ? ' execution-panel-hidden' : ''}`} aria-label="执行结果">
             <Button
               className="execution-panel-collapse-handle"
               icon={PANEL_TOGGLE_ICONS.expanded}
@@ -316,7 +317,7 @@ class ExecutionFloatingPanels extends Component {
             </div>
             </div>
           </section>
-        )}
+        </div>
         </div>
         {this.state.showLink && (
           <LinkModal

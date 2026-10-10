@@ -58,18 +58,52 @@ async function main() {
     });
     assert.strictEqual(gap, 16, `筛选悬浮框距画布顶部 ${gap}px`);
 
+    const togglePosition = async (panel, rail) => {
+      const expandedY = await page.$eval(`${panel} .execution-panel-collapse-handle`, element => {
+        const rect = element.getBoundingClientRect();
+        return rect.top + rect.height / 2;
+      });
+      await page.click(`${panel} .execution-panel-collapse-handle`);
+      assert.strictEqual(await page.$eval(`${panel}.execution-panel-hidden`, element => getComputedStyle(element).pointerEvents), 'none');
+      const collapsedY = await page.$eval(rail, element => {
+        const rect = element.getBoundingClientRect();
+        return rect.top + rect.height / 2;
+      });
+      assert.ok(Math.abs(expandedY - collapsedY) <= 1, `${rail} 收起后偏移 ${collapsedY - expandedY}px`);
+      return { expandedY, collapsedY };
+    };
+    const filterPosition = await togglePosition('.execution-filter-panel', '.execution-filter-rail');
+    const resultPosition = await togglePosition('.execution-result-panel', '.execution-result-rail');
+    assert.ok(resultPosition.collapsedY - filterPosition.collapsedY >= 40, '两个收起入口不得重叠');
+    await page.click('.execution-filter-rail');
+    await page.click('.execution-result-rail');
+    await page.setViewport({ width: 800, height: 600 });
+    const narrowFilter = await togglePosition('.execution-filter-panel', '.execution-filter-rail');
+    const narrowResult = await togglePosition('.execution-result-panel', '.execution-result-rail');
+    assert.ok(narrowResult.collapsedY - narrowFilter.collapsedY >= 40, '窄屏收起入口不得重叠');
+    await page.click('.execution-filter-rail');
+    await page.click('.execution-result-rail');
+    await page.setViewport({ width: 1280, height: 900 });
+
     await page.click('button[aria-label="插入图片"]');
     await page.waitForSelector('.testcasemanage-modal [aria-label="上传图片"]');
     assert.strictEqual(await page.$('.testcasemanage-modal input[placeholder^="必填"]'), null);
+    await page.type('.testcasemanage-modal input[placeholder^="选填"]', 'a'.repeat(205));
+    assert.strictEqual(await page.$eval('.testcasemanage-modal input[placeholder^="选填"]', input => input.value.length), 200);
+    assert.ok((await page.$eval('.testcasemanage-modal', element => element.innerText)).includes('0/200'));
     const input = await page.$('.testcasemanage-modal input[type="file"]');
     await input.uploadFile(path.join(root, 'case-server/src/main/resources/web/dist/favicon.svg'));
     await page.waitForFunction(url => document.querySelector('.testcasemanage-modal [aria-label="图片预览"]')?.src === url, {}, `${origin}/upload-1.svg`);
     await page.waitForSelector('.testcasemanage-modal [aria-label="图片预览"]');
     await page.waitForSelector('.testcasemanage-modal [aria-label="删除已选图片"]:not([disabled])');
+    assert.strictEqual(await page.$eval('.testcasemanage-modal [aria-label="删除已选图片"]', button => button.textContent.trim()), '');
+    assert.strictEqual(await page.$eval('.testcasemanage-modal [aria-label="删除已选图片"]', button => getComputedStyle(button).position), 'absolute');
+    await page.waitForFunction(() => document.querySelector('.testcasemanage-modal [aria-label="删除已选图片"]')?.getBoundingClientRect().width >= 25);
     await page.click('.testcasemanage-modal [aria-label="删除已选图片"]');
     await page.waitForSelector('.testcasemanage-modal [aria-label="图片预览"]', { hidden: true });
     const retryInput = await page.$('.testcasemanage-modal input[type="file"]');
     await retryInput.uploadFile(path.join(root, 'case-server/src/main/resources/web/dist/favicon.svg'));
+    await page.waitForFunction(url => document.querySelector('.testcasemanage-modal [aria-label="图片预览"]')?.src === url, {}, `${origin}/upload-2.svg`);
     await page.waitForSelector('.testcasemanage-modal [aria-label="图片预览"]');
     await page.waitForSelector('.testcasemanage-modal .ant-modal-footer .ant-btn-primary:not([disabled])');
     await page.waitForTimeout(400);
@@ -88,6 +122,7 @@ async function main() {
     await page.waitForFunction(url => document.querySelector('.testcasemanage-modal [aria-label="图片预览"]')?.src === url, {}, `${origin}/upload-3.svg`);
     await page.waitForSelector('.testcasemanage-modal [aria-label="图片预览"]');
     await page.waitForSelector('.testcasemanage-modal [aria-label="删除已选图片"]:not([disabled])');
+    await page.waitForFunction(() => document.querySelector('.testcasemanage-modal [aria-label="删除已选图片"]')?.getBoundingClientRect().width >= 25);
     await page.click('.testcasemanage-modal [aria-label="删除已选图片"]');
     await page.waitForSelector('.testcasemanage-modal [aria-label="图片预览"]', { hidden: true });
     await page.evaluate(source => {
@@ -102,6 +137,12 @@ async function main() {
     await page.waitForTimeout(400);
     await page.click('.testcasemanage-modal .ant-modal-footer .ant-btn-primary');
     await page.waitForFunction(url => window.testMinder.getRoot().children[0].getData('image') === url, {}, `${origin}/upload-4.svg`);
+    await page.waitForSelector('.testcasemanage-modal', { hidden: true });
+    await page.waitForSelector('svg image');
+    await page.click('svg image');
+    await page.waitForSelector('.km-image-viewer');
+    await page.keyboard.press('Escape');
+    await page.waitForSelector('.km-image-viewer', { hidden: true });
     assert.strictEqual(uploadCount, 4);
     console.log(JSON.stringify({ floatingGapPx: gap, localUpload: true, clipboardPaste: true, deleteAndRetry: true }));
   } finally {

@@ -8,6 +8,7 @@ const ImageModal = (props) => {
   const { baseUrl = '', uploadUrl = '' } = props;
   const [uploadedUrl, setUploadedUrl] = React.useState(defaultObj.url || '');
   const [busy, setBusy] = React.useState(false);
+  const [titleLength, setTitleLength] = React.useState((defaultObj.title || '').length);
   const [uploadVersion, setUploadVersion] = React.useState(0);
   const uploadSequence = React.useRef(0);
 
@@ -92,21 +93,25 @@ const ImageModal = (props) => {
           </div>
         </Form.Item>
         {uploadedUrl && <Form.Item label="图片预览">
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+          <div className="mindmap-image-preview">
             <img aria-label="图片预览" src={uploadedUrl} alt="待插入图片预览"
-              style={{ maxWidth: 'calc(100% - 72px)', maxHeight: 180, objectFit: 'contain', border: '1px solid #e8e8e8', borderRadius: 8 }} />
-            <Button aria-label="删除已选图片" disabled={busy} onClick={() => {
+              className="mindmap-image-preview-img" />
+            <Button className="mindmap-image-preview-delete" icon="close" shape="circle"
+              aria-label="删除已选图片" title="删除图片" disabled={busy} onClick={() => {
               uploadSequence.current += 1;
               setUploadedUrl('');
               setUploadVersion(version => version + 1);
-            }}>删除</Button>
+            }} />
           </div>
         </Form.Item>}
 
         <Form.Item label="提示文本">
           {getFieldDecorator('title', {
             initialValue: defaultObj.title,
-          })(<Input placeholder="选填：鼠标在图片上悬停时提示的文本" />)}
+            rules: [{ max: 200, message: '提示文本最多 200 字' }],
+          })(<Input maxLength={200} placeholder="选填：鼠标在图片上悬停时提示的文本"
+            onChange={event => setTitleLength(event.target.value.length)}
+            suffix={<span className="link-title-remaining">{Math.max(0, 200 - titleLength)}/200</span>} />)}
         </Form.Item>
       </Form>
     </Modal>
